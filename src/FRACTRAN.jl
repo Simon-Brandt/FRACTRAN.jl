@@ -42,17 +42,8 @@ function generate_primes(min_n::Int64, max_n::Int64)::Vector{Int64}
     # all divisors have been exhausted to no avail, the dividend must be
     # prime, so add it to the list.
     for dividend in dividends
-        divisors = 3:2:ceil(Int64, sqrt(dividend))
-        # divisors = min_n:2:ceil(Int64, sqrt(dividend))
-        # push!(divisors, primes)
-        # if length(divisors) == 0
-        #     continue
-        # end
-
-        is_divisible = false
-        if dividend % 2 == 0
-            is_divisible = true
-        end
+        is_divisible = dividend % 2 == 0
+        divisors = range(3, ceil(Int64, sqrt(dividend)), step=2)
 
         for divisor in divisors
             if dividend % divisor == 0
@@ -60,9 +51,8 @@ function generate_primes(min_n::Int64, max_n::Int64)::Vector{Int64}
                 break
             end
         end
-        if ! is_divisible
-            push!(primes, dividend)
-        end
+
+        !is_divisible && push!(primes, dividend)
     end
 
     return primes
@@ -72,9 +62,7 @@ function factorize(n::Int64)::Accumulator{Int64, Int64}
     # If the factorization has already been computed for n, return this
     # immediately.
     global factorizations
-    if n in keys(factorizations)
-        return factorizations[n]
-    end
+    n in keys(factorizations) && return factorizations[n]
 
     # Get all prime numbers yet computed and possibly compute all
     # following ones between the highest computed prime number (plus 2,
@@ -99,9 +87,7 @@ function factorize(n::Int64)::Accumulator{Int64, Int64}
         end
     end
 
-    if new_n > 1
-        push!(factors, new_n)
-    end
+    new_n > 1 && push!(factors, new_n)
 
     # Count the number of occurrences of each prime factor and return
     # this as mapping.
