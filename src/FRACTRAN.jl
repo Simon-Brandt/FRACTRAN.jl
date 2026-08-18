@@ -2,7 +2,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2025-05-14
+# Last Modification: 2026-08-18
 
 using DataStructures
 
@@ -41,9 +41,9 @@ function generate_primes(min_n::Int64, max_n::Int64)::Vector{Int64}
     # by the divisor, it is decided that the dividend isn't prime.  If
     # all divisors have been exhausted to no avail, the dividend must be
     # prime, so add it to the list.
-    for dividend ∈ dividends
-        divisors = 3:2:ceil(Int64, √dividend)
-        # divisors = min_n:2:ceil(Int64, √dividend)
+    for dividend in dividends
+        divisors = 3:2:ceil(Int64, sqrt(dividend))
+        # divisors = min_n:2:ceil(Int64, sqrt(dividend))
         # push!(divisors, primes)
         # if length(divisors) == 0
         #     continue
@@ -54,7 +54,7 @@ function generate_primes(min_n::Int64, max_n::Int64)::Vector{Int64}
             is_divisible = true
         end
 
-        for divisor ∈ divisors
+        for divisor in divisors
             if dividend % divisor == 0
                 is_divisible = true
                 break
@@ -81,8 +81,11 @@ function factorize(n::Int64)::Accumulator{Int64, Int64}
     # as the next integer would be even) and the square root of n.
     # These form the divisors to check in the trial division.
     global primes
-    if primes[end] < ceil(Int64, √n)
-        push!(primes, generate_primes(primes[end] + 2, ceil(Int64, √n))...)
+    if primes[end] < ceil(Int64, sqrt(n))
+        push!(
+            primes,
+            generate_primes(primes[end] + 2, ceil(Int64, sqrt(n)))...,
+        )
     end
 
     # Successively divide the number n by all prime numbers, as often as
