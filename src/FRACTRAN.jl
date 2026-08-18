@@ -10,7 +10,7 @@ function _isinteger(c::Accumulator{Int64, Int64})::Bool
     # Return whether the counter c's value (exponent) is positive for
     # all keys (bases).  Then, the represented number is also positive,
     # since fractions have negative exponents.
-    return all(value >= 0 for value in values(c))
+    return all(exponent >= 0 for exponent in values(c))
 end
 
 function generate_primes(max_n::Int64)::Vector{Int64}
@@ -98,7 +98,7 @@ end
 
 function prettyprint_factorization(factors::Accumulator{Int64, Int64})
     # Print the factorization in the canonical, condensed way.
-    prettyfied_factors = String[]
+    prettified_factors = String[]
     for (base, exponent) in sort(collect(factors))
         if exponent == 1
             exponent = ""
@@ -118,25 +118,28 @@ function prettyprint_factorization(factors::Accumulator{Int64, Int64})
                 "9" => "⁹",
             )
         end
-        push!(prettyfied_factors, "$base$exponent")
+        push!(prettified_factors, "$base$exponent")
     end
-    println(join(prettyfied_factors, "⋅"))
+    println(join(prettified_factors, "⋅"))
 end
 
 function fractran(
     n::Int64,
-    fracs::Rational{Int64}...;
-    return_first::Bool = false
+    fractions::Rational{Int64}...;
+    return_first::Bool = false,
 )::Int64
     # Factorize n and each fraction for more efficient operation on the
     # implicitly represented powers with a much lower risk ov integer
     # overflow.
     n = factorize(n)
-    frac_powers = NTuple{2, Accumulator{Int64, Int64}}[]
-    for frac in fracs
+    fraction_powers = NTuple{2, Accumulator{Int64, Int64}}[]
+    for fractions in fractions
         push!(
-            frac_powers,
-            (factorize(numerator(frac)), factorize(denominator(frac))),
+            fraction_powers,
+            (
+                factorize(numerator(fractions)),
+                factorize(denominator(fractions)),
+            ),
         )
     end
 
@@ -145,18 +148,18 @@ function fractran(
     # product with any fraction yields an integer.  The last integer
     # product is the result of the FRACTRAN algorithm.
     i = 1
-    while i <= length(frac_powers)
-        # Perform the equivalent operation to "result = n * fracs[i]"
-        # for non-factorized numbers, i.e., add each exponent of the
-        # numerator to the respective base of the result, and subtract
-        # each exponent of the denominator from the respective base,
-        # effectively multiplying n with the numerator and dividing it
-        # by the denominator.
+    while i <= length(fraction_powers)
+        # Perform the equivalent operation to
+        # "result = n * fractions[i]" for non-factorized numbers, i.e.,
+        # add each exponent of the numerator to the respective base of
+        # the result, and subtract each exponent of the denominator from
+        # the respective base, effectively multiplying n with the
+        # numerator and dividing it by the denominator.
         result = copy(n)
-        for (base, exponent) in frac_powers[i][begin]  # Numerator.
+        for (base, exponent) in fraction_powers[i][begin]  # Numerator.
             result[base] += exponent
         end
-        for (base, exponent) in frac_powers[i][end]  # Denominator.
+        for (base, exponent) in fraction_powers[i][end]  # Denominator.
             result[base] -= exponent
         end
 
@@ -186,8 +189,8 @@ function add(a::Int64, b::Int64)::Int64
     # Fractions:    3//2
     # Result:       3^(a+b)
     n = 2^a * 3^b
-    fracs = (3//2,)
-    result = factorize(fractran(n, fracs...))
+    fractions = (3//2,)
+    result = factorize(fractran(n, fractions...))
     result = Tuple(values(result))[begin]
     return result
 end
@@ -198,8 +201,8 @@ function sub(a::Int64, b::Int64)::Int64
     # Fractions:    1//6
     # Result:       2 ^ (a-b)
     n = 2^a * 3^b
-    fracs = (1//6,)
-    result = factorize(fractran(n, fracs...))
+    fractions = (1//6,)
+    result = factorize(fractran(n, fractions...))
     result = Tuple(values(result))[begin]
     return result
 end
@@ -210,8 +213,8 @@ function mul(a::Int64, b::Int64)::Int64
     # Fractions:    455//33, 11//13, 1//11, 3//7, 11//2, 1//3
     # Result:       5 ^ (a*b)
     n = 2^a * 3^b
-    fracs = (455//33, 11//13, 1//11, 3//7, 11//2, 1//3)
-    result = factorize(fractran(n, fracs...))
+    fractions = (455//33, 11//13, 1//11, 3//7, 11//2, 1//3)
+    result = factorize(fractran(n, fractions...))
     result = Tuple(values(result))[begin]
     return result
 end
@@ -220,12 +223,12 @@ function div(n::Int64, d::Int64)
     # Divide n (numerator) by d (denominator) using the following
     # FRACTRAN program:
     # Start value:  n = 2^n * 3^d * 11
-    # Fractions:    91//66, 11//13, 1//33, 85//11, 57//119, 17//19, 11//17,
-    #               1//3
+    # Fractions:    91//66, 11//13, 1//33, 85//11, 57//119, 17//19,
+    #               11//17, 1//3
     # Result:       5^q * 7^r
     n = 2^n * 3^d * 11
-    fracs = (91//66, 11//13, 1//33, 85//11, 57//119, 17//19, 11//17, 1//3)
-    result = factorize(fractran(n, fracs...))
+    fractions = (91//66, 11//13, 1//33, 85//11, 57//119, 17//19, 11//17, 1//3)
+    result = factorize(fractran(n, fractions...))
     result = Tuple(values(result))
     if length(result) == 1
         result = result[1]
@@ -244,14 +247,14 @@ function primegame(max_iterations::Int64 = 100)::Vector{Int64}
     #               55//1
     # Result:       2^a * 7^b, a prime number if b == 0
     n = 2
-    fracs = (
+    fractions = (
         17//91, 78//85, 19//51, 23//38, 29//33, 77//29, 95//23, 77//19, 1//17,
         11//13, 13//11, 15//2, 1//7, 55//1
     )
     results = [n]
     for i in 1:max_iterations
         print("\r", "Performing PRIMEGAME iteration #$i... ")
-        result = fractran(n, fracs..., return_first=true)
+        result = fractran(n, fractions..., return_first=true)
         push!(results, result)
         n = result
     end
