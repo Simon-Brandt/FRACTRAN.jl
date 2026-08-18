@@ -22,7 +22,7 @@ function generate_primes(min_n::Int64, max_n::Int64)::Vector{Int64}
 
     # Check that min_n is greater than 1 and odd, or convert it to
     # fulfill this.
-    primes::Vector{Int64} = []
+    primes = Int64[]
     if min_n <= 2
         min_n = 3
         primes = [2, 3]
@@ -91,7 +91,7 @@ function factorize(n::Int64)::Accumulator{Int64, Int64}
     # Successively divide the number n by all prime numbers, as often as
     # possible.
     new_n = n
-    factors = Vector{Int64}()
+    factors = Int64[]
     for divisor in primes
         while new_n % divisor == 0
             push!(factors, divisor)
@@ -112,7 +112,7 @@ end
 
 function prettyprint_factorization(factors::Accumulator{Int64, Int64})
     # Print the factorization in the canonical, condensed way.
-    prettyfied_factors = Vector{String}()
+    prettyfied_factors = String[]
     for (base, exponent) in sort(collect(factors))
         if exponent == 1
             exponent = ""
@@ -146,7 +146,7 @@ function fractran(
     # implicitly represented powers with a much lower risk ov integer
     # overflow.
     n = factorize(n)
-    frac_powers = []
+    frac_powers = NTuple{2, Accumulator{Int64, Int64}}[]
     for frac in fracs
         push!(
             frac_powers,
@@ -271,7 +271,7 @@ function primegame(max_iterations::Int64 = 100)::Vector{Int64}
     end
     println()
 
-    primes::Vector{Int64} = []
+    primes = Int64[]
     for result in results
         result = factorize(result)
         if (
