@@ -6,7 +6,7 @@
 
 using DataStructures
 
-function Base.isinteger(c::Accumulator{Int64, Int64})::Bool
+function _isinteger(c::Accumulator{Int64, Int64})::Bool
     # Return whether the counter c's value (exponent) is positive for
     # all keys (bases).  Then, the represented number is also positive,
     # since fractions have negative exponents.
@@ -162,7 +162,7 @@ function fractran(
 
         i += 1
 
-        if isinteger(result)
+        if _isinteger(result)
             i = 1
             n = result
 
