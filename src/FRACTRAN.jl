@@ -13,10 +13,6 @@ function _isinteger(c::Accumulator{Int64, Int64})::Bool
     return all(exponent >= 0 for exponent in values(c))
 end
 
-function generate_primes(max_n::Int64)::Vector{Int64}
-    generate_primes(Int64(2), max_n)
-end
-
 function generate_primes(min_n::Int64, max_n::Int64)::Vector{Int64}
     # Compute the prime numbers from min_n to max_n, inclusive.
 
@@ -57,6 +53,8 @@ function generate_primes(min_n::Int64, max_n::Int64)::Vector{Int64}
 
     return primes
 end
+
+generate_primes(max_n::Int64)::Vector{Int64} = generate_primes(2, max_n)
 
 function factorize(n::Int64)::Accumulator{Int64, Int64}
     # If the factorization has already been computed for n, return this
@@ -183,6 +181,14 @@ function fractran(
     return n
 end
 
+function fractran(
+    n::Int64,
+    fractions::Tuple{Rational{Int64}, Vararg{Rational{Int64}}};
+    return_first::Bool = false,
+)::Int64
+    fractran(n, fractions...; return_first)
+end
+
 function add(a::Int64, b::Int64)::Int64
     # Add a and b using the following FRACTRAN program:
     # Start value:  n = 2^a * 3^b
@@ -190,7 +196,7 @@ function add(a::Int64, b::Int64)::Int64
     # Result:       3^(a+b)
     n = 2^a * 3^b
     fractions = (3//2,)
-    result = factorize(fractran(n, fractions...))
+    result = factorize(fractran(n, fractions))
     result = Tuple(values(result))[begin]
     return result
 end
@@ -202,7 +208,7 @@ function sub(a::Int64, b::Int64)::Int64
     # Result:       2 ^ (a-b)
     n = 2^a * 3^b
     fractions = (1//6,)
-    result = factorize(fractran(n, fractions...))
+    result = factorize(fractran(n, fractions))
     result = Tuple(values(result))[begin]
     return result
 end
@@ -214,7 +220,7 @@ function mul(a::Int64, b::Int64)::Int64
     # Result:       5 ^ (a*b)
     n = 2^a * 3^b
     fractions = (455//33, 11//13, 1//11, 3//7, 11//2, 1//3)
-    result = factorize(fractran(n, fractions...))
+    result = factorize(fractran(n, fractions))
     result = Tuple(values(result))[begin]
     return result
 end
@@ -228,7 +234,7 @@ function div(n::Int64, d::Int64)
     # Result:       5^q * 7^r
     n = 2^n * 3^d * 11
     fractions = (91//66, 11//13, 1//33, 85//11, 57//119, 17//19, 11//17, 1//3)
-    result = factorize(fractran(n, fractions...))
+    result = factorize(fractran(n, fractions))
     result = Tuple(values(result))
     if length(result) == 1
         result = result[1]
@@ -254,7 +260,7 @@ function primegame(max_iterations::Int64 = 100)::Vector{Int64}
     results = [n]
     for i in 1:max_iterations
         print("\r", "Performing PRIMEGAME iteration #$i... ")
-        result = fractran(n, fractions..., return_first=true)
+        result = fractran(n, fractions, return_first=true)
         push!(results, result)
         n = result
     end
