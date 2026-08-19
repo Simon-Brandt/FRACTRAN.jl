@@ -4,6 +4,12 @@
 # E-Mail: simon.brandt@uni-greifswald.de
 # Last Modification: 2026-08-19
 
+module FRACTRAN
+
+export factorize, fractran, generate_primes, prettify_factorization
+
+public add, sub, mul, div, primegame, primes
+
 using DataStructures
 
 function _isinteger(c::Accumulator{Int64, Int64})::Bool
@@ -58,8 +64,8 @@ generate_primes(max_n::Int64)::Vector{Int64} = generate_primes(2, max_n)
 function factorize(n::Int64)::Accumulator{Int64, Int64}
     # If the factorization has already been computed for `n`, return
     # this (cached) value immediately.
-    global factorizations
-    n in keys(factorizations) && return factorizations[n]
+    global _factorizations
+    n in keys(_factorizations) && return _factorizations[n]
 
     # Get all prime numbers yet computed and possibly compute all
     # following ones between the highest computed prime number (plus 2,
@@ -89,7 +95,7 @@ function factorize(n::Int64)::Accumulator{Int64, Int64}
     # Count the number of occurrences of each prime factor and return
     # this as mapping.
     factors = counter(factors)
-    factorizations[n] = factors
+    _factorizations[n] = factors
     return factors
 end
 
@@ -275,12 +281,7 @@ function primegame(max_iterations::Int64 = 100)::Vector{Int64}
     return primes
 end
 
+_factorizations = Dict{Int64, Accumulator{Int64, Int64}}()
 primes = generate_primes(10)
-factorizations = Dict{Int64, Accumulator{Int64, Int64}}()
-print(prettify_factorization(factorize(26520)))
 
-# add(4, 3)
-# sub(7, 2)
-# mul(2, 4)
-# div(9, 3)
-# primegame()
+end  # module
