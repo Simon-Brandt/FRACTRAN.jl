@@ -222,20 +222,20 @@ function mul(a::Int64, b::Int64)::Int64
     )
 end
 
-function div(n::Int64, d::Int64)
-    # Divide `n` (numerator) by `d` (denominator) using the following
+function div(a::Int64, b::Int64)::Rational{Int64}
+    # Divide `a` (numerator) by `b` (denominator) using the following
     # FRACTRAN program:
-    # Start value:  `n = 2^n * 3^d * 11`
+    # Start value:  `n = 2^a * 3^b * 11`
     # Fractions:    `91//66`, `11//13`, `1//33`, `85//11`, `57//119`,
     #               `17//19`, `11//17`, `1//3`
     # Result:       `5^q * 7^r`
-    n = 2^n * 3^d * 11
+    n = 2^a * 3^b * 11
     fractions = (91//66, 11//13, 1//33, 85//11, 57//119, 17//19, 11//17, 1//3)
     return (
         fractran(n, fractions)
         |> factorize
         |> values
-        |> (x -> length(x) == 1 ? x[1] : x[1] + x[2] // d)
+        |> (x -> length(x) == 1 ? x[1] : x[1] + x[2] // b)
     )
 end
 
