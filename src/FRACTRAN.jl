@@ -16,16 +16,15 @@ end
 function generate_primes(min_n::Int64, max_n::Int64)::Vector{Int64}
     # Compute the prime numbers from min_n to max_n, inclusive.
 
-    # Check that min_n is greater than 1 and odd, or convert it to
-    # fulfill this.
-    primes = Int64[]
-    if min_n <= 2
+    # Check that min_n is greater than 1 and odd, or throw an error.
+    min_n >= 2 || throw(ArgumentError("min_n must be `≥2`."))
+    min_n == 2 || isodd(min_n) || throw(ArgumentError("min_n must be odd."))
+
+    if min_n == 2
         min_n = 3
-        primes = [2, 3]
-    elseif min_n == 3
-        primes = [3]
-    elseif iseven(min_n)
-        min_n = min_n + 1
+        primes = [2]
+    else
+        primes = Int64[]
     end
 
     # Set all odd integers as dividends to check in the trial division.
