@@ -2,7 +2,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-08-18
+# Last Modification: 2026-08-19
 
 using DataStructures
 
@@ -93,16 +93,15 @@ function factorize(n::Int64)::Accumulator{Int64, Int64}
     return factors
 end
 
-function prettyprint_factorization(factors::Accumulator{Int64, Int64})
-    # Print the factorization in the canonical, condensed way.
+function prettify_factorization(factors::Accumulator{Int64, Int64})::String
+    # Stringify the factorization in the canonical, condensed way.
     prettified_factors = String[]
     for (base, exponent) in sort(collect(factors))
         if exponent == 1
-            exponent = ""
+            push!(prettified_factors, string(base))
         else
-            exponent = string(exponent)
-            exponent = replace(
-                exponent,
+            formatted_exponent = replace(
+                string(exponent),
                 "0" => "⁰",
                 "1" => "¹",
                 "2" => "²",
@@ -114,10 +113,11 @@ function prettyprint_factorization(factors::Accumulator{Int64, Int64})
                 "8" => "⁸",
                 "9" => "⁹",
             )
+            push!(prettified_factors, string(base, formatted_exponent))
         end
-        push!(prettified_factors, "$base$exponent")
     end
-    println(join(prettified_factors, "⋅"))
+
+    return join(prettified_factors, "⋅")
 end
 
 function fractran(
@@ -280,7 +280,7 @@ end
 
 primes = generate_primes(10)
 factorizations = Dict{Int64, Accumulator{Int64, Int64}}()
-prettyprint_factorization(factorize(26520))
+print(prettify_factorization(factorize(26520)))
 
 # add(4, 3)
 # sub(7, 2)
