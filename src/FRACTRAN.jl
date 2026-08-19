@@ -7,18 +7,18 @@
 using DataStructures
 
 function _isinteger(c::Accumulator{Int64, Int64})::Bool
-    # Return whether the counter c's value (exponent) is positive for
+    # Return whether the counter `c`'s value (exponent) is positive for
     # all keys (bases).  Then, the represented number is also positive,
-    # since fractions have negative exponents.
+    # since fractions would have negative exponents.
     return all(exponent >= 0 for exponent in values(c))
 end
 
 function generate_primes(min_n::Int64, max_n::Int64)::Vector{Int64}
-    # Compute the prime numbers from min_n to max_n, inclusive.
+    # Compute the prime numbers from `min_n` to `max_n`, inclusive.
 
-    # Check that min_n is greater than 1 and odd, or throw an error.
-    min_n >= 2 || throw(ArgumentError("min_n must be `≥2`."))
-    min_n == 2 || isodd(min_n) || throw(ArgumentError("min_n must be odd."))
+    # Check that `min_n` is greater than 1 and odd, or throw an error.
+    min_n >= 2 || throw(ArgumentError("`min_n` must be `≥2`."))
+    min_n == 2 || isodd(min_n) || throw(ArgumentError("`min_n` must be odd."))
 
     if min_n == 2
         min_n = 3
@@ -56,14 +56,14 @@ end
 generate_primes(max_n::Int64)::Vector{Int64} = generate_primes(2, max_n)
 
 function factorize(n::Int64)::Accumulator{Int64, Int64}
-    # If the factorization has already been computed for n, return this
-    # immediately.
+    # If the factorization has already been computed for `n`, return
+    # this (cached) value immediately.
     global factorizations
     n in keys(factorizations) && return factorizations[n]
 
     # Get all prime numbers yet computed and possibly compute all
     # following ones between the highest computed prime number (plus 2,
-    # as the next integer would be even) and the square root of n.
+    # as the next integer would be even) and the square root of `n`.
     # These form the divisors to check in the trial division.
     global primes
     if primes[end] < ceil(Int64, sqrt(n))
@@ -73,8 +73,8 @@ function factorize(n::Int64)::Accumulator{Int64, Int64}
         )
     end
 
-    # Successively divide the number n by all prime numbers, as often as
-    # possible.
+    # Successively divide the number `n` by all prime numbers, as often
+    # as possible.
     new_n = n
     factors = Int64[]
     for divisor in primes
@@ -125,28 +125,28 @@ function fractran(
     fractions::Rational{Int64}...;
     return_first::Bool = false,
 )::Int64
-    # Factorize n and each fraction for more efficient operation on the
-    # implicitly represented powers with a much lower risk ov integer
-    # overflow.
+    # Factorize `n` and each `fraction` for more efficient operation on
+    # the implicitly represented powers with a much lower risk of
+    # integer overflow.
     factors = factorize(n)
     fraction_powers = [
         (factorize(numerator(fraction)), factorize(denominator(fraction)))
         for fraction in fractions
     ]
 
-    # For each fraction, multiply n by it until the product is an
+    # For each `fraction`, multiply `n` by it until the product is an
     # integer, then continue with this product and start anew, until no
     # product with any fraction yields an integer.  The last integer
     # product is the result of the FRACTRAN algorithm.
     i = 1
     result = copy(factors)
     while i <= length(fraction_powers)
-        # Perform the equivalent operation to
-        # "result = n * fractions[i]" for non-factorized numbers, i.e.,
-        # add each exponent of the numerator to the respective base of
-        # the result, and subtract each exponent of the denominator from
-        # the respective base, effectively multiplying n with the
-        # numerator and dividing it by the denominator.
+        # Perform an operation equivalent to `result = n * fractions[i]`
+        # for non-factorized numbers, i.e., add each exponent of the
+        # numerator to the respective base of the result, and subtract
+        # each exponent of the denominator from the respective base,
+        # effectively multiplying `n` with the numerator and dividing it
+        # by the denominator.
         result = copy(factors)
         for (base, exponent) in fraction_powers[i][1]  # Numerator.
             result[base] += exponent
@@ -164,7 +164,7 @@ function fractran(
         end
     end
 
-    # Invert the factorization to yield an integer as result.
+    # Undo the factorization to yield an integer as result.
     return prod(base ^ exponent for (base, exponent) in factors)
 end
 
@@ -177,10 +177,10 @@ function fractran(
 end
 
 function add(a::Int64, b::Int64)::Int64
-    # Add a and b using the following FRACTRAN program:
-    # Start value:  n = 2^a * 3^b
-    # Fractions:    3//2
-    # Result:       3^(a+b)
+    # Add `a` and `b` using the following FRACTRAN program:
+    # Start value:  `n = 2^a * 3^b`
+    # Fractions:    `3//2`
+    # Result:       `3^(a+b)`
     n = 2^a * 3^b
     fractions = (3//2,)
     return (
@@ -192,10 +192,10 @@ function add(a::Int64, b::Int64)::Int64
 end
 
 function sub(a::Int64, b::Int64)::Int64
-    # Subtract a and b using the following FRACTRAN program:
-    # Start value:  n = 2^a * 3^b
-    # Fractions:    1//6
-    # Result:       2 ^ (a-b)
+    # Subtract `a` and `b` using the following FRACTRAN program:
+    # Start value:  `n = 2^a * 3^b`
+    # Fractions:    `1//6`
+    # Result:       `2 ^ (a-b)`
     n = 2^a * 3^b
     fractions = (1//6,)
     return (
@@ -207,10 +207,11 @@ function sub(a::Int64, b::Int64)::Int64
 end
 
 function mul(a::Int64, b::Int64)::Int64
-    # Multiply a and b using the following FRACTRAN program:
-    # Start value:  n = 2^a * 3^b
-    # Fractions:    455//33, 11//13, 1//11, 3//7, 11//2, 1//3
-    # Result:       5 ^ (a*b)
+    # Multiply `a` and `b` using the following FRACTRAN program:
+    # Start value:  `n = 2^a * 3^b`
+    # Fractions:    `455//33`, `11//13`, `1//11`, `3//7`, `11//2`,
+    #               `1//3`
+    # Result:       `5 ^ (a*b)`
     n = 2^a * 3^b
     fractions = (455//33, 11//13, 1//11, 3//7, 11//2, 1//3)
     return (
@@ -222,12 +223,12 @@ function mul(a::Int64, b::Int64)::Int64
 end
 
 function div(n::Int64, d::Int64)
-    # Divide n (numerator) by d (denominator) using the following
+    # Divide `n` (numerator) by `d` (denominator) using the following
     # FRACTRAN program:
-    # Start value:  n = 2^n * 3^d * 11
-    # Fractions:    91//66, 11//13, 1//33, 85//11, 57//119, 17//19,
-    #               11//17, 1//3
-    # Result:       5^q * 7^r
+    # Start value:  `n = 2^n * 3^d * 11`
+    # Fractions:    `91//66`, `11//13`, `1//33`, `85//11`, `57//119`,
+    #               `17//19`, `11//17`, `1//3`
+    # Result:       `5^q * 7^r`
     n = 2^n * 3^d * 11
     fractions = (91//66, 11//13, 1//33, 85//11, 57//119, 17//19, 11//17, 1//3)
     return (
@@ -240,11 +241,11 @@ end
 
 function primegame(max_iterations::Int64 = 100)::Vector{Int64}
     # Find prime numbers using the following FRACTRAN program:
-    # Start value:  n = 2^n * 7^m, here n = 2
-    # Fractions:    17//91, 78//85, 19//51, 23//38, 29//33, 77//29,
-    #               95//23, 77//19, 1//17, 11//13, 13//11, 15//2, 1//7,
-    #               55//1
-    # Result:       2^a * 7^b, a prime number if b == 0
+    # Start value:  `n = 2^n * 7^m`, here n = 2
+    # Fractions:    `17//91`, `78//85`, `19//51`, `23//38`, `29//33`,
+    #               `77//29`, `95//23`, `77//19`, `1//17`, `11//13`,
+    #               `13//11`, `15//2`, `1//7`, `55//1`
+    # Result:       `2^a * 7^b`, a prime number if `b == 0`
     n = 2
     fractions = (
         17//91, 78//85, 19//51, 23//38, 29//33, 77//29, 95//23, 77//19, 1//17,
