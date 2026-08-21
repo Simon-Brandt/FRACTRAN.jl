@@ -2,7 +2,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-08-19
+# Last Modification: 2026-08-21
 
 module FRACTRAN
 
@@ -19,9 +19,14 @@ function _isinteger(c::Accumulator{Int64, Int64})::Bool
     return all(exponent >= 0 for exponent in values(c))
 end
 
-function generate_primes(min_n::Int64, max_n::Int64)::Vector{Int64}
-    # Compute the prime numbers from `min_n` to `max_n`, inclusive.
+"""
+    generate_primes(min_n::Int64, max_n::Int64)::Vector{Int64}
+    generate_primes(max_n::Int64)::Vector{Int64}
 
+Compute the prime numbers from `min_n` to `max_n`, inclusive.  The
+second form defaults to `min_n = 2`.
+"""
+function generate_primes(min_n::Int64, max_n::Int64)::Vector{Int64}
     # Check that `min_n` is greater than 1 and odd, or throw an error.
     min_n >= 2 || throw(ArgumentError("`min_n` must be `≥2`."))
     min_n == 2 || isodd(min_n) || throw(ArgumentError("`min_n` must be odd."))
@@ -61,6 +66,12 @@ end
 
 generate_primes(max_n::Int64)::Vector{Int64} = generate_primes(2, max_n)
 
+"""
+    factorize(n::Int64)::Accumulator{Int64, Int64}
+
+Factorize `n`.  This yields an `Accumulator` mapping the factors' bases
+to their counts (exponents).
+"""
 function factorize(n::Int64)::Accumulator{Int64, Int64}
     # If the factorization has already been computed for `n`, return
     # this (cached) value immediately.
@@ -99,8 +110,12 @@ function factorize(n::Int64)::Accumulator{Int64, Int64}
     return factors
 end
 
+"""
+    prettify_factorization(factors::Accumulator{Int64, Int64})::String
+
+Stringify the `factors`' factorization in the canonical, condensed way.
+"""
 function prettify_factorization(factors::Accumulator{Int64, Int64})::String
-    # Stringify the factorization in the canonical, condensed way.
     prettified_factors = String[]
     for (base, exponent) in sort(collect(factors))
         if exponent == 1
@@ -126,6 +141,26 @@ function prettify_factorization(factors::Accumulator{Int64, Int64})::String
     return join(prettified_factors, "⋅")
 end
 
+"""
+    fractran(
+        n::Int64,
+        fractions::Rational{Int64}...;
+        return_first::Bool = false,
+    )::Int64
+
+    fractran(
+        n::Int64,
+        fractions::Tuple{Vararg{Rational{Int64}}};
+        return_first::Bool = false,
+    )::Int64
+
+Run the FRACTRAN algorithm on the start value `n` using the `fractions`.
+*Iff* `return_first` is `true`, return the first obtained integer.
+Else, run the algorithm until no fraction yields an integer and return
+the last integer.  This is the FRACTRAN algorithm's actual
+result—`return_first` is needed by some specific programs like PRIMEGAME
+that filter the FRACTRAN integers.
+"""
 function fractran(
     n::Int64,
     fractions::Rational{Int64}...;
@@ -182,11 +217,18 @@ function fractran(
     fractran(n, fractions...; return_first)
 end
 
+"""
+    add(a::Int64, b::Int64)::Int64
+
+Add `b` to `a` using the following FRACTRAN program:
+
+- Start value:  `n = 2^a * 3^b`
+- Fractions:    `3//2`
+- Result:       `3^(a+b)`
+
+Note: `add(a, b)` directly returns `a + b`, not `3^(a+b)`.
+"""
 function add(a::Int64, b::Int64)::Int64
-    # Add `a` and `b` using the following FRACTRAN program:
-    # Start value:  `n = 2^a * 3^b`
-    # Fractions:    `3//2`
-    # Result:       `3^(a+b)`
     n = 2^a * 3^b
     fractions = (3//2,)
     return (
@@ -197,11 +239,18 @@ function add(a::Int64, b::Int64)::Int64
     )
 end
 
+"""
+    sub(a::Int64, b::Int64)::Int64
+
+Subtract `b` from `a` using the following FRACTRAN program:
+
+- Start value:  `n = 2^a * 3^b`
+- Fractions:    `1//6`
+- Result:       `2^(a-b)`
+
+Note: `sub(a, b)` directly returns `a - b`, not `2^(a-b)`.
+"""
 function sub(a::Int64, b::Int64)::Int64
-    # Subtract `a` and `b` using the following FRACTRAN program:
-    # Start value:  `n = 2^a * 3^b`
-    # Fractions:    `1//6`
-    # Result:       `2 ^ (a-b)`
     n = 2^a * 3^b
     fractions = (1//6,)
     return (
@@ -212,12 +261,18 @@ function sub(a::Int64, b::Int64)::Int64
     )
 end
 
+"""
+    mul(a::Int64, b::Int64)::Int64
+
+Multiply `a` by `b` using the following FRACTRAN program:
+
+- Start value:  `n = 2^a * 3^b`
+- Fractions:    `455//33`, `11//13`, `1//11`, `3//7`, `11//2`, `1//3`
+- Result:       `5^(a*b)`
+
+Note: `mul(a, b)` directly returns `a * b`, not `5^(a*b)`.
+"""
 function mul(a::Int64, b::Int64)::Int64
-    # Multiply `a` and `b` using the following FRACTRAN program:
-    # Start value:  `n = 2^a * 3^b`
-    # Fractions:    `455//33`, `11//13`, `1//11`, `3//7`, `11//2`,
-    #               `1//3`
-    # Result:       `5 ^ (a*b)`
     n = 2^a * 3^b
     fractions = (455//33, 11//13, 1//11, 3//7, 11//2, 1//3)
     return (
@@ -228,13 +283,19 @@ function mul(a::Int64, b::Int64)::Int64
     )
 end
 
+"""
+    div(a::Int64, b::Int64)::Rational{Int64}
+
+Divide `a` by `b` using the following FRACTRAN program:
+
+- Start value:  `2^a * 3^b * 11`
+- Fractions:    `91//66`, `11//13`, `1//33`, `85//11`, `57//119`,
+                `17//19`, `11//17`, `1//3`
+- Result:       `5^q * 7^r` (`q`: quotient, `r`: remainder)
+
+Note: `div(a, b)` directly returns `a // b`, not `5^q * 7^r`.
+"""
 function div(a::Int64, b::Int64)::Rational{Int64}
-    # Divide `a` (numerator) by `b` (denominator) using the following
-    # FRACTRAN program:
-    # Start value:  `n = 2^a * 3^b * 11`
-    # Fractions:    `91//66`, `11//13`, `1//33`, `85//11`, `57//119`,
-    #               `17//19`, `11//17`, `1//3`
-    # Result:       `5^q * 7^r`
     n = 2^a * 3^b * 11
     fractions = (91//66, 11//13, 1//33, 85//11, 57//119, 17//19, 11//17, 1//3)
     return (
@@ -245,13 +306,26 @@ function div(a::Int64, b::Int64)::Rational{Int64}
     )
 end
 
+"""
+    primegame(max_iterations::Int64 = 100)::Vector{Int64}
+
+Find all prime numbers that are reachable by running `max_iterations`
+iterations of the algorithm using the following FRACTRAN program, called
+"PRIMEGAME":
+
+- Start value:  `n = 2` (in PRIMEGAME, more generally, `n = 2^a * 7^b`)
+- Fractions:    `17//91`, `78//85`, `19//51`, `23//38`, `29//33`,
+                `77//29`, `95//23`, `77//19`, `1//17`, `11//13`,
+                `13//11`, `15//2`, `1//7`, `55//1`
+- Result:       `2^c * 7^d`, with `c ≤ a` and `d ≤ b`, a prime number
+                *iff* `d == 0`
+
+Note: `primegame(n)` directly returns all prime numbers up to, and
+including, `c`, not `2^c * 7^d`.  Also note that the PRIMEGAME algorithm
+is very inefficient and may take a very long time even for small prime
+numbers.
+"""
 function primegame(max_iterations::Int64 = 100)::Vector{Int64}
-    # Find prime numbers using the following FRACTRAN program:
-    # Start value:  `n = 2^n * 7^m`, here n = 2
-    # Fractions:    `17//91`, `78//85`, `19//51`, `23//38`, `29//33`,
-    #               `77//29`, `95//23`, `77//19`, `1//17`, `11//13`,
-    #               `13//11`, `15//2`, `1//7`, `55//1`
-    # Result:       `2^a * 7^b`, a prime number if `b == 0`
     n = 2
     fractions = (
         17//91, 78//85, 19//51, 23//38, 29//33, 77//29, 95//23, 77//19, 1//17,
@@ -260,7 +334,7 @@ function primegame(max_iterations::Int64 = 100)::Vector{Int64}
     results = [n]
 
     for i in 1:max_iterations
-        print("\r", "Performing PRIMEGAME iteration #$i... ")
+        print("\r", "Performing PRIMEGAME iteration #$i...")
         result = fractran(n, fractions, return_first=true)
         push!(results, result)
         n = result
@@ -281,7 +355,10 @@ function primegame(max_iterations::Int64 = 100)::Vector{Int64}
     return primes
 end
 
+"""**Non-public** cache for yet computed factorizations."""
 _factorizations = Dict{Int64, Accumulator{Int64, Int64}}()
+
+"""All yet computed prime numbers."""
 primes = generate_primes(10)
 
 end  # module
