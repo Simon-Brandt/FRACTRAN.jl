@@ -48,7 +48,7 @@ function generate_primes(min_n::Int64, max_n::Int64)::Vector{Int64}
     # all divisors have been exhausted to no avail, the dividend must be
     # prime, so add it to the list.
     for dividend in dividends
-        is_divisible = dividend % 2 == 0
+        is_divisible = false
         divisors = range(3, ceil(Int64, sqrt(dividend)), step=2)
 
         for divisor in divisors
