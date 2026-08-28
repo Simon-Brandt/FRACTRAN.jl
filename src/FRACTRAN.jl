@@ -26,7 +26,7 @@ module FRACTRAN
 
 export factorize, factorize!, fractran, generate_primes, prettify_factorization
 
-public add, sub, mul, div, primegame, primes
+public add, sub, mul, div, primegame, factorizations, primes
 
 using DataStructures
 
@@ -105,12 +105,16 @@ end
     )::Accumulator{Int64, Int64}
 
 Factorize `n` to prime factors.  This yields an `Accumulator` mapping
-the factors' bases to their exponents (counts).  Unlike the non-mutating
-[`factorize`](@ref), `factorize!` takes cache arguments of pre-computed
-`factorizations` and `primes` and mutates them **in-place**, thus
-updating the cache for future usage.  When needing to call `factorize`
-repeatedly, it is thus more efficient to call `factorize!` instead and
-pass shared `factorizations` and `primes`.
+the factors' bases to their exponents (counts).
+
+Unlike the non-mutating [`factorize`](@ref), `factorize!` takes cache
+arguments of pre-computed `factorizations` and `primes` and mutates them
+**in-place**, thus updating the cache for future usage.  When needing to
+call `factorize` repeatedly, it is thus more efficient to call
+`factorize!` instead and pass shared `factorizations` and `primes`.  To
+this end, `FRACTRAN.jl` provides two module-level cache variables,
+`FRACTRAN.factorizations` and `FRACTRAN.primes`, which you can use as
+storage targets.  Note that this is **not** thread-safe.
 """
 function factorize!(
     factorizations::Dict{Int64, Accumulator{Int64, Int64}},
@@ -397,10 +401,17 @@ function primegame(max_iterations::Int64 = 100)::Vector{Int64}
     return primes
 end
 
-"""**Non-public** cache for yet computed factorizations."""
-_factorizations = Dict{Int64, Accumulator{Int64, Int64}}()
+"""
+Module-level cache for yet computed factorizations, for optional usage
+in [`factorize!`](@ref).
+"""
+factorizations::Dict{Int64, Accumulator{Int64, Int64}} =
+    Dict{Int64, Accumulator{Int64, Int64}}()
 
-"""All yet computed prime numbers."""
-primes = generate_primes(10)
+"""
+Module-level cache for yet computed prime numbers, for optional usage in
+[`factorize!`](@ref).
+"""
+primes::Vector{Int64} = Int64[]
 
 end  # module
