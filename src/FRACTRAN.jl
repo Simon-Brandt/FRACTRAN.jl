@@ -20,11 +20,11 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-08-27
+# Last Modification: 2026-08-28
 
 module FRACTRAN
 
-export factorize, fractran, generate_primes, prettify_factorization
+export factorize, factorize!, fractran, generate_primes, prettify_factorization
 
 public add, sub, mul, div, primegame, primes
 
@@ -87,25 +87,49 @@ generate_primes(max_n::Int64)::Vector{Int64} = generate_primes(2, max_n)
 """
     factorize(n::Int64)::Accumulator{Int64, Int64}
 
-Factorize `n`.  This yields an `Accumulator` mapping the factors' bases
-to their counts (exponents).
+Factorize `n` to prime factors.  This yields an `Accumulator` mapping
+the factors' bases to their exponents (counts).  See
+[`factorize!`](@ref) for performance implications.
 """
 function factorize(n::Int64)::Accumulator{Int64, Int64}
+    factorizations = Dict{Int64, Accumulator{Int64, Int64}}()
+    primes = Int64[]
+    factorize!(factorizations, primes, n)
+end
+
+"""
+    factorize!(
+        factorizations::Dict{Int64, Accumulator{Int64, Int64}},
+        primes::Vector{Int64},
+        n::Int64,
+    )::Accumulator{Int64, Int64}
+
+Factorize `n` to prime factors.  This yields an `Accumulator` mapping
+the factors' bases to their exponents (counts).  Unlike the non-mutating
+[`factorize`](@ref), `factorize!` takes cache arguments of pre-computed
+`factorizations` and `primes` and mutates them **in-place**, thus
+updating the cache for future usage.  When needing to call `factorize`
+repeatedly, it is thus more efficient to call `factorize!` instead and
+pass shared `factorizations` and `primes`.
+"""
+function factorize!(
+    factorizations::Dict{Int64, Accumulator{Int64, Int64}},
+    primes::Vector{Int64},
+    n::Int64,
+)::Accumulator{Int64, Int64}
     # If the factorization has already been computed for `n`, return
     # this (cached) value immediately.
-    global _factorizations
-    n in keys(_factorizations) && return _factorizations[n]
+    n in keys(factorizations) && return factorizations[n]
 
-    # Get all prime numbers yet computed and possibly compute all
-    # following ones between the highest computed prime number (plus 2,
-    # as the next integer would be even) and the square root of `n`.
-    # These form the divisors to check in the trial division.
-    global primes
-    if primes[end] < ceil(Int64, sqrt(n))
-        push!(
-            primes,
-            generate_primes(primes[end] + 2, ceil(Int64, sqrt(n)))...,
-        )
+    # Compute all prime numbers between the highest computed prime
+    # number (plus 2, as the next integer would be even) and the square
+    # root of `n`, if needed.  These form the divisors to check in the
+    # trial division.
+    max_divisor = ceil(Int64, sqrt(n))
+    if isempty(primes)
+        push!(primes, generate_primes(2, max_divisor)...)
+    elseif primes[end] < max_divisor
+        push!(primes, generate_primes(primes[end] + 2, max_divisor)...)
     end
 
     # Successively divide the number `n` by all prime numbers, as often
@@ -124,7 +148,7 @@ function factorize(n::Int64)::Accumulator{Int64, Int64}
     # Count the number of occurrences of each prime factor and return
     # this as mapping.
     factors = counter(factors)
-    _factorizations[n] = factors
+    factorizations[n] = factors
     return factors
 end
 
