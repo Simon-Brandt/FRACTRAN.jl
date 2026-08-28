@@ -151,9 +151,9 @@ function factorize!(
 
     # Count the number of occurrences of each prime factor and return
     # this as mapping.
-    factors = counter(factors)
-    factorizations[n] = factors
-    return factors
+    factor_counts = counter(factors)
+    factorizations[n] = factor_counts
+    return factor_counts
 end
 
 """
