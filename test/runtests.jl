@@ -234,5 +234,12 @@ const FACTORIZATIONS = Dict(
 
         FRACTRAN.factorizations = Dict()
         FRACTRAN.primes = Int64[]
+
+        # Test invalid numbers.
+        @test_throws ArgumentError factorize(-1)
+        @test_throws "`n` must be `≥1`." factorize(-1)
+
+        @test_throws ArgumentError factorize(0)
+        @test_throws "`n` must be `≥1`." factorize(0)
     end
 end

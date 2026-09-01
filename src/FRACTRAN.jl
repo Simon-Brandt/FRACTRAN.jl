@@ -121,6 +121,9 @@ function factorize!(
     primes::Vector{Int64},
     n::Int64,
 )::Accumulator{Int64, Int64}
+    # Check that `n` is positive, or throw an error.
+    n >= 1 || throw(ArgumentError("`n` must be `≥1`."))
+
     # If the factorization has already been computed for `n`, return
     # this (cached) value immediately.
     n in keys(factorizations) && return factorizations[n]
