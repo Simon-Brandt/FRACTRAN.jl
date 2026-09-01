@@ -133,7 +133,11 @@ function factorize!(
     if isempty(primes)
         push!(primes, generate_primes(2, max_divisor)...)
     elseif primes[end] < max_divisor
-        push!(primes, generate_primes(primes[end] + 2, max_divisor)...)
+        if primes[end] == 2
+            push!(primes, generate_primes(3, max_divisor)...)
+        else
+            push!(primes, generate_primes(primes[end] + 2, max_divisor)...)
+        end
     end
 
     # Successively divide the number `n` by all prime numbers, as often
