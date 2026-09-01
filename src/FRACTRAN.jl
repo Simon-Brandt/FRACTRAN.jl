@@ -164,15 +164,34 @@ function factorize!(
 end
 
 """
-    prettify_factorization(factors::Accumulator{Int64, Int64})::String
+    prettify_factorization(
+        factors::Accumulator{Int64, Int64};
+        explicit_one::Bool = false,
+        verbose::Bool = false,
+    )::String
 
 Stringify the `factors`' factorization in the canonical, condensed way.
+
+If `explicit_one` is `true` (default: `false`), also print exponents of
+one (`1`), as `¹`.  If `verbose` is `true` (default: `false`), expand
+the exponents to individual factors.  In this case, `explicit_one` has
+no effect.
 """
-function prettify_factorization(factors::Accumulator{Int64, Int64})::String
+function prettify_factorization(
+    factors::Accumulator{Int64, Int64};
+    explicit_one::Bool = false,
+    verbose::Bool = false,
+)::String
     prettified_factors = String[]
     for (base, exponent) in sort(collect(factors))
-        if exponent == 1
-            push!(prettified_factors, string(base))
+        formatted_base = string(base)
+
+        if verbose
+            for _ in 1:exponent
+                push!(prettified_factors, formatted_base)
+            end
+        elseif exponent == 1 && !explicit_one
+            push!(prettified_factors, formatted_base)
         else
             formatted_exponent = replace(
                 string(exponent),
@@ -187,7 +206,7 @@ function prettify_factorization(factors::Accumulator{Int64, Int64})::String
                 '8' => '⁸',
                 '9' => '⁹',
             )
-            push!(prettified_factors, string(base, formatted_exponent))
+            push!(prettified_factors, formatted_base * formatted_exponent)
         end
     end
 
