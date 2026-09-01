@@ -160,6 +160,111 @@ const FACTORIZATIONS = Dict(
     100 => Accumulator( 2 => 2,  5 => 2         ),
 )
 
+const PRETTIFIED_FACTORIZATIONS = Dict(
+    # The factorization for `1` is the empty product, see
+    # https://math.stackexchange.com/a/47161.
+      1 => (""         , ""           ),
+      2 => ("2¹"       , "2"          ),
+      3 => ("3¹"       , "3"          ),
+      4 => ("2²"       , "2⋅2"        ),
+      5 => ("5¹"       , "5"          ),
+      6 => ("2¹⋅3¹"    , "2⋅3"        ),
+      7 => ("7¹"       , "7"          ),
+      8 => ("2³"       , "2⋅2⋅2"      ),
+      9 => ("3²"       , "3⋅3"        ),
+     10 => ("2¹⋅5¹"    , "2⋅5"        ),
+     11 => ("11¹"      , "11"         ),
+     12 => ("2²⋅3¹"    , "2⋅2⋅3"      ),
+     13 => ("13¹"      , "13"         ),
+     14 => ("2¹⋅7¹"    , "2⋅7"        ),
+     15 => ("3¹⋅5¹"    , "3⋅5"        ),
+     16 => ("2⁴"       , "2⋅2⋅2⋅2"    ),
+     17 => ("17¹"      , "17"         ),
+     18 => ("2¹⋅3²"    , "2⋅3⋅3"      ),
+     19 => ("19¹"      , "19"         ),
+     20 => ("2²⋅5¹"    , "2⋅2⋅5"      ),
+     21 => ("3¹⋅7¹"    , "3⋅7"        ),
+     22 => ("2¹⋅11¹"   , "2⋅11"       ),
+     23 => ("23¹"      , "23"         ),
+     24 => ("2³⋅3¹"    , "2⋅2⋅2⋅3"    ),
+     25 => ("5²"       , "5⋅5"        ),
+     26 => ("2¹⋅13¹"   , "2⋅13"       ),
+     27 => ("3³"       , "3⋅3⋅3"      ),
+     28 => ("2²⋅7¹"    , "2⋅2⋅7"      ),
+     29 => ("29¹"      , "29"         ),
+     30 => ("2¹⋅3¹⋅5¹" , "2⋅3⋅5"      ),
+     31 => ("31¹"      , "31"         ),
+     32 => ("2⁵"       , "2⋅2⋅2⋅2⋅2"  ),
+     33 => ("3¹⋅11¹"   , "3⋅11"       ),
+     34 => ("2¹⋅17¹"   , "2⋅17"       ),
+     35 => ("5¹⋅7¹"    , "5⋅7"        ),
+     36 => ("2²⋅3²"    , "2⋅2⋅3⋅3"    ),
+     37 => ("37¹"      , "37"         ),
+     38 => ("2¹⋅19¹"   , "2⋅19"       ),
+     39 => ("3¹⋅13¹"   , "3⋅13"       ),
+     40 => ("2³⋅5¹"    , "2⋅2⋅2⋅5"    ),
+     41 => ("41¹"      , "41"         ),
+     42 => ("2¹⋅3¹⋅7¹" , "2⋅3⋅7"      ),
+     43 => ("43¹"      , "43"         ),
+     44 => ("2²⋅11¹"   , "2⋅2⋅11"     ),
+     45 => ("3²⋅5¹"    , "3⋅3⋅5"      ),
+     46 => ("2¹⋅23¹"   , "2⋅23"       ),
+     47 => ("47¹"      , "47"         ),
+     48 => ("2⁴⋅3¹"    , "2⋅2⋅2⋅2⋅3"  ),
+     49 => ("7²"       , "7⋅7"        ),
+     50 => ("2¹⋅5²"    , "2⋅5⋅5"      ),
+     51 => ("3¹⋅17¹"   , "3⋅17"       ),
+     52 => ("2²⋅13¹"   , "2⋅2⋅13"     ),
+     53 => ("53¹"      , "53"         ),
+     54 => ("2¹⋅3³"    , "2⋅3⋅3⋅3"    ),
+     55 => ("5¹⋅11¹"   , "5⋅11"       ),
+     56 => ("2³⋅7¹"    , "2⋅2⋅2⋅7"    ),
+     57 => ("3¹⋅19¹"   , "3⋅19"       ),
+     58 => ("2¹⋅29¹"   , "2⋅29"       ),
+     59 => ("59¹"      , "59"         ),
+     60 => ("2²⋅3¹⋅5¹" , "2⋅2⋅3⋅5"    ),
+     61 => ("61¹"      , "61"         ),
+     62 => ("2¹⋅31¹"   , "2⋅31"       ),
+     63 => ("3²⋅7¹"    , "3⋅3⋅7"      ),
+     64 => ("2⁶"       , "2⋅2⋅2⋅2⋅2⋅2"),
+     65 => ("5¹⋅13¹"   , "5⋅13"       ),
+     66 => ("2¹⋅3¹⋅11¹", "2⋅3⋅11"     ),
+     67 => ("67¹"      , "67"         ),
+     68 => ("2²⋅17¹"   , "2⋅2⋅17"     ),
+     69 => ("3¹⋅23¹"   , "3⋅23"       ),
+     70 => ("2¹⋅5¹⋅7¹" , "2⋅5⋅7"      ),
+     71 => ("71¹"      , "71"         ),
+     72 => ("2³⋅3²"    , "2⋅2⋅2⋅3⋅3"  ),
+     73 => ("73¹"      , "73"         ),
+     74 => ("2¹⋅37¹"   , "2⋅37"       ),
+     75 => ("3¹⋅5²"    , "3⋅5⋅5"      ),
+     76 => ("2²⋅19¹"   , "2⋅2⋅19"     ),
+     77 => ("7¹⋅11¹"   , "7⋅11"       ),
+     78 => ("2¹⋅3¹⋅13¹", "2⋅3⋅13"     ),
+     79 => ("79¹"      , "79"         ),
+     80 => ("2⁴⋅5¹"    , "2⋅2⋅2⋅2⋅5"  ),
+     81 => ("3⁴"       , "3⋅3⋅3⋅3"    ),
+     82 => ("2¹⋅41¹"   , "2⋅41"       ),
+     83 => ("83¹"      , "83"         ),
+     84 => ("2²⋅3¹⋅7¹" , "2⋅2⋅3⋅7"    ),
+     85 => ("5¹⋅17¹"   , "5⋅17"       ),
+     86 => ("2¹⋅43¹"   , "2⋅43"       ),
+     87 => ("3¹⋅29¹"   , "3⋅29"       ),
+     88 => ("2³⋅11¹"   , "2⋅2⋅2⋅11"   ),
+     89 => ("89¹"      , "89"         ),
+     90 => ("2¹⋅3²⋅5¹" , "2⋅3⋅3⋅5"    ),
+     91 => ("7¹⋅13¹"   , "7⋅13"       ),
+     92 => ("2²⋅23¹"   , "2⋅2⋅23"     ),
+     93 => ("3¹⋅31¹"   , "3⋅31"       ),
+     94 => ("2¹⋅47¹"   , "2⋅47"       ),
+     95 => ("5¹⋅19¹"   , "5⋅19"       ),
+     96 => ("2⁵⋅3¹"    , "2⋅2⋅2⋅2⋅2⋅3"),
+     97 => ("97¹"      , "97"         ),
+     98 => ("2¹⋅7²"    , "2⋅7⋅7"      ),
+     99 => ("3²⋅11¹"   , "3⋅3⋅11"     ),
+    100 => ("2²⋅5²"    , "2⋅2⋅5⋅5"    ),
+)
+
 # Run the tests.
 @testset "FRACTRAN.jl" begin
     # Test the code quality.
@@ -241,5 +346,64 @@ const FACTORIZATIONS = Dict(
 
         @test_throws ArgumentError factorize(0)
         @test_throws "`n` must be `≥1`." factorize(0)
+    end
+
+    # Test FRACTRAN's factorization prettyprinting.
+    @testset "Prettyprinting" begin
+        # Test all factorizations up to 100, first with implicit, then
+        # with explicit exponent-of-one printing.
+        @testset "Prettyprinting of $i, compact, implicit `¹`" for i in 1:100
+            @test ==(
+                prettify_factorization(factorize(i)),
+                replace(first(PRETTIFIED_FACTORIZATIONS[i]), '¹' => ""),
+            )
+        end
+
+        @testset "Prettyprinting of $i, compact, explicit `¹`" for i in 1:100
+            @test ==(
+                prettify_factorization(factorize(i), explicit_one=true),
+                first(PRETTIFIED_FACTORIZATIONS[i]),
+            )
+        end
+
+        # Test all factorizations up to 100, first with implicit, then
+        # with explicit exponent-of-one printing, in verbose form,
+        # listing all factors individually.  There should not be any
+        # difference between the implicit and the explicit form, since
+        # no exponent should be printed.
+        @testset "Prettyprinting of $i, verbose, implicit `¹`" for i in 1:100
+            @test ==(
+                prettify_factorization(factorize(i), verbose=true),
+                last(PRETTIFIED_FACTORIZATIONS[i]),
+            )
+        end
+
+        @testset "Prettyprinting of $i, verbose, explicit `¹`" for i in 1:100
+            @test ==(
+                prettify_factorization(
+                    factorize(i),
+                    explicit_one=true,
+                    verbose=true,
+                ),
+                last(PRETTIFIED_FACTORIZATIONS[i]),
+            )
+        end
+
+        # Test the first 20 powers of two with exponents greater than
+        # `6` and multiple digits.
+        @testset "Prettyprinting of power of `2`: `2^$i`" for i in 1:20
+            results = [
+                "2",   "2²",  "2³",  "2⁴",  "2⁵",  "2⁶",  "2⁷",  "2⁸",  "2⁹",
+                "2¹⁰", "2¹¹", "2¹²", "2¹³", "2¹⁴", "2¹⁵", "2¹⁶", "2¹⁷", "2¹⁸",
+                "2¹⁹", "2²⁰",
+            ]
+            @test prettify_factorization(factorize(2^i)) == results[i]
+        end
+
+        # Test a highly composite number with many prime factors.
+        @testset "Prettyprinting of highly composite number" begin
+            n = 2^5 * 3^2 * 5 * 7 * 11 * 13  # 1_441_440
+            @test prettify_factorization(factorize(n)) == "2⁵⋅3²⋅5⋅7⋅11⋅13"
+        end
     end
 end
