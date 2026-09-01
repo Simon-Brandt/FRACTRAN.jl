@@ -176,16 +176,16 @@ function prettify_factorization(factors::Accumulator{Int64, Int64})::String
         else
             formatted_exponent = replace(
                 string(exponent),
-                "0" => "⁰",
-                "1" => "¹",
-                "2" => "²",
-                "3" => "³",
-                "4" => "⁴",
-                "5" => "⁵",
-                "6" => "⁶",
-                "7" => "⁷",
-                "8" => "⁸",
-                "9" => "⁹",
+                '0' => '⁰',
+                '1' => '¹',
+                '2' => '²',
+                '3' => '³',
+                '4' => '⁴',
+                '5' => '⁵',
+                '6' => '⁶',
+                '7' => '⁷',
+                '8' => '⁸',
+                '9' => '⁹',
             )
             push!(prettified_factors, string(base, formatted_exponent))
         end
