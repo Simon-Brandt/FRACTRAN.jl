@@ -28,13 +28,13 @@ export factorize, factorize!, fractran, generate_primes, prettify_factorization
 
 public add, sub, mul, divrem, primegame, factorizations, primes
 
-using DataStructures
+using DataStructures: DataStructures, Accumulator
 
-function _isinteger(c::Accumulator{Int64, Int64})::Bool
-    # Return whether the counter `c`'s value (exponent) is positive for
+function _isinteger(counter::Accumulator{Int64, Int64})::Bool
+    # Return whether the `counter`'s value (exponent) is positive for
     # all keys (bases).  Then, the represented number is also positive,
     # since fractions would have negative exponents.
-    return all(exponent >= 0 for exponent in values(c))
+    return all(exponent >= 0 for exponent in values(counter))
 end
 
 """
@@ -126,7 +126,7 @@ function factorize!(
 
     # If the factorization has already been computed for `n`, return
     # this (cached) value immediately.
-    n in keys(factorizations) && return factorizations[n]
+    haskey(factorizations, n) && return factorizations[n]
 
     # Compute all prime numbers between the highest computed prime
     # number (plus 2, as the next integer would be even) and the square
@@ -158,7 +158,7 @@ function factorize!(
 
     # Count the number of occurrences of each prime factor and return
     # this as mapping.
-    factor_counts = counter(factors)
+    factor_counts = DataStructures.counter(factors)
     factorizations[n] = factor_counts
     return factor_counts
 end
@@ -376,9 +376,9 @@ function divrem(a::Int64, b::Int64)::Tuple{Int64, Int64}
     n = 2^a * 3^b * 11
     fractions = (91//66, 11//13, 1//33, 85//11, 57//119, 17//19, 11//17, 1//3)
     factors = factorize(fractran(n, fractions))
-    return if 5 in keys(factors) && 7 in keys(factors)
+    return if haskey(factors, 5) && haskey(factors, 7)
         (factors[5], factors[7])  # Incomplete division with `q` and `r`.
-    elseif 7 in keys(factors)
+    elseif haskey(factors, 7)
         (0, factors[7])           # Incomplete division with only `r`.
     else
         (factors[5], 0)           # Complete division with only `q`.
@@ -408,24 +408,22 @@ function primegame(max_iterations::Int64 = 100)::Vector{Int64}
     n = 2
     fractions = (
         17//91, 78//85, 19//51, 23//38, 29//33, 77//29, 95//23, 77//19, 1//17,
-        11//13, 13//11, 15//2, 1//7, 55//1
+        11//13, 13//11, 15//2, 1//7, 55//1,
     )
     results = [n]
 
     for i in 1:max_iterations
-        print("\r", "Performing PRIMEGAME iteration #$i...")
         result = fractran(n, fractions, return_first=true)
         push!(results, result)
         n = result
     end
-    println()
 
     primes = Int64[]
     for result in results
         factors = factorize(result)
         if (
             factors[2] > 1
-            && all(factors[i] == 0 for i in keys(factors) if i != 2)
+            && all(exponent == 0 for (base, exponent) in factors if base != 2)
         )
             push!(primes, factors[2])
         end
