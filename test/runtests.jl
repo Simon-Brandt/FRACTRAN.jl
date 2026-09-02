@@ -22,6 +22,7 @@
 # E-Mail: simon.brandt@uni-greifswald.de
 # Last Modification: 2026-09-02
 
+using Markdown: Markdown, @md_str
 using Test: @test, @testset, @test_throws
 
 using Aqua: Aqua
@@ -265,6 +266,10 @@ const PRETTIFIED_FACTORIZATIONS = Dict(
     100 => ("2²⋅5²"    , "2⋅2⋅5⋅5"    ),
 )
 
+# Define the internal function to stringify a Markdown-formatted error
+# message for `@test_throws`.
+_to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
+
 # Run the tests.
 @testset "FRACTRAN.jl" begin
     # Test the code quality.
@@ -290,11 +295,11 @@ const PRETTIFIED_FACTORIZATIONS = Dict(
         @test length(generate_primes(1_000_000)) == 78_498
 
         # Test invalid start numbers.
-        @test_throws ArgumentError generate_primes(1, 10)
-        @test_throws "`min_n` must be `≥2`." generate_primes(1, 10)
+        @test_throws FRACTRAN._MDError generate_primes(1, 10)
+        @test_throws _to_str(md"`min_n` must be `≥2`.") generate_primes(1, 10)
 
-        @test_throws ArgumentError generate_primes(4, 10)
-        @test_throws "`min_n` must be odd." generate_primes(4, 10)
+        @test_throws FRACTRAN._MDError generate_primes(4, 10)
+        @test_throws _to_str(md"`min_n` must be odd.") generate_primes(4, 10)
     end
 
     # Test FRACTRAN's factorization algorithm.
@@ -341,11 +346,11 @@ const PRETTIFIED_FACTORIZATIONS = Dict(
         FRACTRAN.primes = Int64[]
 
         # Test invalid numbers.
-        @test_throws ArgumentError factorize(-1)
-        @test_throws "`n` must be `≥1`." factorize(-1)
+        @test_throws FRACTRAN._MDError factorize(-1)
+        @test_throws _to_str(md"`n` must be `≥1`.") factorize(-1)
 
-        @test_throws ArgumentError factorize(0)
-        @test_throws "`n` must be `≥1`." factorize(0)
+        @test_throws FRACTRAN._MDError factorize(0)
+        @test_throws _to_str(md"`n` must be `≥1`.") factorize(0)
     end
 
     # Test FRACTRAN's factorization prettyprinting.

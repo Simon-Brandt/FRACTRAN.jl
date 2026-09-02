@@ -28,7 +28,18 @@ export factorize, factorize!, fractran, generate_primes, prettify_factorization
 
 public add, sub, mul, divrem, primegame, factorizations, primes
 
+using Markdown: Markdown, @md_str
+
 using DataStructures: DataStructures, Accumulator
+
+struct _MDError <: Exception
+    msg::Markdown.MD
+end
+
+function Base.showerror(io::IO, err::_MDError)
+    print(io, "ArgumentError:")
+    show(io, MIME"text/plain"(), err.msg)  # Adds two spaces before `msg`.
+end
 
 function _isinteger(counter::Accumulator{Int64, Int64})::Bool
     # Return whether the `counter`'s value (exponent) is positive for
@@ -46,8 +57,8 @@ second form defaults to `min_n = 2`.
 """
 function generate_primes(min_n::Int64, max_n::Int64)::Vector{Int64}
     # Check that `min_n` is greater than 1 and odd, or throw an error.
-    min_n >= 2 || throw(ArgumentError("`min_n` must be `≥2`."))
-    min_n == 2 || isodd(min_n) || throw(ArgumentError("`min_n` must be odd."))
+    min_n >= 2 || throw(_MDError(md"`min_n` must be `≥2`."))
+    min_n == 2 || isodd(min_n) || throw(_MDError(md"`min_n` must be odd."))
 
     if min_n == 2
         min_n = 3
@@ -122,7 +133,7 @@ function factorize!(
     n::Int64,
 )::Accumulator{Int64, Int64}
     # Check that `n` is positive, or throw an error.
-    n >= 1 || throw(ArgumentError("`n` must be `≥1`."))
+    n >= 1 || throw(_MDError(md"`n` must be `≥1`."))
 
     # If the factorization has already been computed for `n`, return
     # this (cached) value immediately.
