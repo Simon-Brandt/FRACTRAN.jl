@@ -443,5 +443,11 @@ const PRETTIFIED_FACTORIZATIONS = Dict(
         @testset "Division program" for a in 1:10, b in 1:10
             @test FRACTRAN.divrem(a, b) == divrem(a, b)
         end
+
+        # Test the PRIMEGAME program.
+        @testset "PRIMEGAME program" begin
+            @test FRACTRAN.primegame() == filter(<=(3), PRIMES)
+            @test FRACTRAN.primegame(1000) == filter(<=(7), PRIMES)
+        end
     end
 end
