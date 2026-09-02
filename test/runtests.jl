@@ -409,16 +409,17 @@ const PRETTIFIED_FACTORIZATIONS = Dict(
 
     # Test FRACTRAN's FRACTRAN implementation.
     @testset "FRACTRAN" begin
-        # Test the implementation using a simple addition program, the
-        # same as used in `FRACTRAN.add`, but without the destructuring
-        # of the result into the actual sum (without power).  First,
-        # test the call form using `Vararg`s, then using a `Tuple`.
+        # Test the implementation using a simple addition program, a
+        # slightly different one than in `FRACTRAN.add`, and without the
+        # destructuring of the result into the actual sum (without the
+        # power).  First, test the call form using `Vararg`s, then using
+        # a `Tuple`.
         @testset "General implementation, `Vararg`" for a in 1:10, b in 1:10
-            @test fractran(2^a * 3^b, 3//2) == 3^(a+b)
+            @test fractran(3^a * 5^b, 5//3) == 5^(a+b)
         end
 
         @testset "General implementation, `Tuple`" for a in 1:10, b in 1:10
-            @test fractran(2^a * 3^b, (3//2,)) == 3^(a+b)
+            @test fractran(3^a * 5^b, (5//3,)) == 5^(a+b)
         end
 
         # Test the addition program.
