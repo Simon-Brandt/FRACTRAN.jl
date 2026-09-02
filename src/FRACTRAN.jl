@@ -26,7 +26,7 @@ module FRACTRAN
 
 export factorize, factorize!, fractran, generate_primes, prettify_factorization
 
-public add, sub, mul, div, primegame, factorizations, primes
+public add, sub, mul, divrem, primegame, factorizations, primes
 
 using DataStructures
 
@@ -358,26 +358,31 @@ function mul(a::Int64, b::Int64)::Int64
 end
 
 """
-    div(a::Int64, b::Int64)::Rational{Int64}
+    divrem(a::Int64, b::Int64)::Tuple{Int64, Int64}
 
-Divide `a` by `b` using the following FRACTRAN program:
+Divide `a` by `b` (as Euclidian division) using the following FRACTRAN
+program:
 
 - Start value:  `2^a * 3^b * 11`
 - Fractions:    `91//66`, `11//13`, `1//33`, `85//11`, `57//119`,
                 `17//19`, `11//17`, `1//3`
-- Result:       `5^q * 7^r` (`q`: quotient, `r`: remainder)
+- Result:       `5^q * 7^r` (`q ≔ a ÷ b`: quotient, `r ≔ a % b`:
+                remainder)
 
-Note: `div(a, b)` directly returns `a // b`, not `5^q * 7^r`.
+Note: `divrem(a, b)` directly returns `(q, r)`, i.e., `(a ÷ b, a % b)`,
+not `5^q * 7^r`.
 """
-function div(a::Int64, b::Int64)::Rational{Int64}
+function divrem(a::Int64, b::Int64)::Tuple{Int64, Int64}
     n = 2^a * 3^b * 11
     fractions = (91//66, 11//13, 1//33, 85//11, 57//119, 17//19, 11//17, 1//3)
-    return (
-        fractran(n, fractions)
-        |> factorize
-        |> values
-        |> (x -> length(x) == 1 ? x[1] : x[1] + x[2] // b)
-    )
+    factors = factorize(fractran(n, fractions))
+    return if 5 in keys(factors) && 7 in keys(factors)
+        (factors[5], factors[7])  # Incomplete division with `q` and `r`.
+    elseif 7 in keys(factors)
+        (0, factors[7])           # Incomplete division with only `r`.
+    else
+        (factors[5], 0)           # Complete division with only `q`.
+    end
 end
 
 """
