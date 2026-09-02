@@ -325,12 +325,14 @@ Note: `sub(a, b)` directly returns `a - b`, not `2^(a-b)`.
 function sub(a::Int64, b::Int64)::Int64
     n = 2^a * 3^b
     fractions = (1//6,)
-    return (
-        fractran(n, fractions)
-        |> factorize
-        |> values
-        |> first
-    )
+    factors = factorize(fractran(n, fractions))
+    return if a == b
+        0            # Empty product, as 2^(a-b) = 2^0 = 1 ⟹ factorize(1) = ∅.
+    elseif a < b
+        -factors[3]  # Incomplete subtraction of `b`'s exponent from `a`'s.
+    else
+        factors[2]   # Complete subtraction.
+    end
 end
 
 """
