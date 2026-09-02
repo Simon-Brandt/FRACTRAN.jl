@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-01
+# Last Modification: 2026-09-02
 
 using Test: @test, @testset, @test_throws
 
@@ -404,6 +404,43 @@ const PRETTIFIED_FACTORIZATIONS = Dict(
         @testset "Prettyprinting of highly composite number" begin
             n = 2^5 * 3^2 * 5 * 7 * 11 * 13  # 1_441_440
             @test prettify_factorization(factorize(n)) == "2⁵⋅3²⋅5⋅7⋅11⋅13"
+        end
+    end
+
+    # Test FRACTRAN's FRACTRAN implementation.
+    @testset "FRACTRAN" begin
+        # Test the implementation using a simple addition program, the
+        # same as used in `FRACTRAN.add`, but without the destructuring
+        # of the result into the actual sum (without power).  First,
+        # test the call form using `Vararg`s, then using a `Tuple`.
+        @testset "General implementation, `Vararg`" for a in 1:10, b in 1:10
+            @test fractran(2^a * 3^b, 3//2) == 3^(a+b)
+        end
+
+        @testset "General implementation, `Tuple`" for a in 1:10, b in 1:10
+            @test fractran(2^a * 3^b, (3//2,)) == 3^(a+b)
+        end
+
+        # Test the addition program.
+        @testset "Addition program" for a in 1:10, b in 1:10
+            @test FRACTRAN.add(a, b) == a + b
+        end
+
+        # Test the subtraction program.
+        @testset "Subtraction program" for a in 1:10, b in 1:10
+            @test FRACTRAN.sub(a, b) == a - b
+        end
+
+        # Test the multiplication program.  Use only `1 ≤ a ≤ 4` and
+        # `1 ≤ b ≤ 5` as otherwise, the prime number generation would
+        # take too long.
+        @testset "Multiplication program" for a in 1:4, b in 1:5
+            @test FRACTRAN.mul(a, b) == a * b
+        end
+
+        # Test the division program.
+        @testset "Division program" for a in 1:10, b in 1:10
+            @test FRACTRAN.divrem(a, b) == divrem(a, b)
         end
     end
 end
