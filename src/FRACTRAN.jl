@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-08-28
+# Last Modification: 2026-09-02
 
 module FRACTRAN
 
@@ -307,7 +307,7 @@ function add(a::Int64, b::Int64)::Int64
         fractran(n, fractions)
         |> factorize
         |> values
-        |> first
+        |> only
     )
 end
 
@@ -351,7 +351,7 @@ function mul(a::Int64, b::Int64)::Int64
         fractran(n, fractions)
         |> factorize
         |> values
-        |> first
+        |> only
     )
 end
 
