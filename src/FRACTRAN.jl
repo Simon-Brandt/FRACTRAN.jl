@@ -146,12 +146,14 @@ function factorize!(
     # trial division.
     max_divisor = ceil(Int64, sqrt(n))
     if isempty(primes)
-        push!(primes, generate_primes(2, max_divisor)...)
+        min_divisor = 2
+        if min_divisor <= max_divisor
+            append!(primes, generate_primes(min_divisor, max_divisor))
+        end
     elseif primes[end] < max_divisor
-        if primes[end] == 2
-            push!(primes, generate_primes(3, max_divisor)...)
-        else
-            push!(primes, generate_primes(primes[end] + 2, max_divisor)...)
+        min_divisor = primes[end] == 2 ? 3 : primes[end] + 2
+        if min_divisor <= max_divisor
+            append!(primes, generate_primes(min_divisor, max_divisor))
         end
     end
 
