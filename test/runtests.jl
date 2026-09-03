@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-02
+# Last Modification: 2026-09-03
 
 using Markdown: Markdown, @md_str
 using Test: @test, @testset, @test_throws
@@ -294,12 +294,15 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
         # 78,498, see https://www.mathematical.com/primes0to1000k.html.
         @test length(generate_primes(1_000_000)) == 78_498
 
-        # Test invalid start numbers.
+        # Test invalid start and end numbers.
         @test_throws FRACTRAN._MDError generate_primes(1, 10)
-        @test_throws _to_str(md"`min_n` must be `≥2`.") generate_primes(1, 10)
+        @test_throws _to_str(md"`min_n` must be `≥ 2`.") generate_primes(1, 10)
 
         @test_throws FRACTRAN._MDError generate_primes(4, 10)
         @test_throws _to_str(md"`min_n` must be odd.") generate_primes(4, 10)
+
+        @test_throws FRACTRAN._MDError generate_primes(5, 3)
+        @test_throws _to_str(md"`max_n` must be `≥ min_n`.") generate_primes(5, 3)
     end
 
     # Test FRACTRAN's factorization algorithm.
@@ -347,10 +350,10 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
 
         # Test invalid numbers.
         @test_throws FRACTRAN._MDError factorize(-1)
-        @test_throws _to_str(md"`n` must be `≥1`.") factorize(-1)
+        @test_throws _to_str(md"`n` must be `≥ 1`.") factorize(-1)
 
         @test_throws FRACTRAN._MDError factorize(0)
-        @test_throws _to_str(md"`n` must be `≥1`.") factorize(0)
+        @test_throws _to_str(md"`n` must be `≥ 1`.") factorize(0)
     end
 
     # Test FRACTRAN's factorization prettyprinting.
