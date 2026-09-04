@@ -24,9 +24,11 @@
 
 module FRACTRAN
 
-export factorize, factorize!, fractran, generate_primes, prettify_factorization
+export factorize, factorize!, fractran, fractran!
+export generate_primes, prettify_factorization
 
-public add, sub, mul, divrem, primegame, factorizations, primes
+public add, add!, sub, sub!, mul, mul!, divrem, divrem!, primegame, primegame!
+public factorizations, primes
 
 using Markdown: Markdown, @md_str
 
@@ -109,7 +111,7 @@ the factors' bases to their exponents (counts).  See
 function factorize(n::Integer)::Accumulator{Int, Int}
     factorizations = Dict{Int, Accumulator{Int, Int}}()
     primes = Int[]
-    factorize!(factorizations, primes, n)
+    return factorize!(factorizations, primes, n)
 end
 
 """
@@ -256,12 +258,27 @@ function fractran(
     fractions::Rational{<:Integer}...;
     return_first::Bool = false,
 )::Int
+    factorizations = Dict{Int, Accumulator{Int, Int}}()
+    primes = Int[]
+    return fractran!(factorizations, primes, n, fractions; return_first)
+end
+
+function fractran!(
+    factorizations::Dict{Int, Accumulator{Int, Int}},
+    primes::Vector{Int},
+    n::Integer,
+    fractions::Rational{<:Integer}...;
+    return_first::Bool = false,
+)::Int
     # Factorize `n` and each `fraction` for more efficient operation on
     # the implicitly represented powers with a much lower risk of
     # integer overflow.
-    factors = factorize(n)
+    factors = factorize!(factorizations, primes, n)
     fraction_powers = [
-        (factorize(numerator(fraction)), factorize(denominator(fraction)))
+        (
+            factorize!(factorizations, primes, numerator(fraction)),
+            factorize!(factorizations, primes, denominator(fraction)),
+        )
         for fraction in fractions
     ]
 
@@ -304,7 +321,19 @@ function fractran(
     fractions::Tuple{Rational{<:Integer}, Vararg{Rational{<:Integer}}};
     return_first::Bool = false,
 )::Int
-    return fractran(n, fractions...; return_first)
+    factorizations = Dict{Int, Accumulator{Int, Int}}()
+    primes = Int[]
+    return fractran!(factorizations, primes, n, fractions...; return_first)
+end
+
+function fractran!(
+    factorizations::Dict{Int, Accumulator{Int, Int}},
+    primes::Vector{Int},
+    n::Integer,
+    fractions::Tuple{Rational{<:Integer}, Vararg{Rational{<:Integer}}};
+    return_first::Bool = false,
+)::Int
+    return fractran!(factorizations, primes, n, fractions...; return_first)
 end
 
 """
@@ -319,11 +348,22 @@ Add `b` to `a` using the following FRACTRAN program:
 Note: `add(a, b)` directly returns `a + b`, not `3^(a+b)`.
 """
 function add(a::Integer, b::Integer)::Int
+    factorizations = Dict{Int, Accumulator{Int, Int}}()
+    primes = Int[]
+    return add!(factorizations, primes, a, b)
+end
+
+function add!(
+    factorizations::Dict{Int, Accumulator{Int, Int}},
+    primes::Vector{Int},
+    a::Integer,
+    b::Integer,
+)::Int
     n = 2^a * 3^b
     fractions = (3//2,)
     return (
-        fractran(n, fractions)
-        |> factorize
+        fractran!(factorizations, primes, n, fractions)
+        |> (x -> factorize!(factorizations, primes, x))
         |> values
         |> only
     )
@@ -341,9 +381,22 @@ Subtract `b` from `a` using the following FRACTRAN program:
 Note: `sub(a, b)` directly returns `a - b`, not `2^(a-b)`.
 """
 function sub(a::Integer, b::Integer)::Int
+    factorizations = Dict{Int, Accumulator{Int, Int}}()
+    primes = Int[]
+    return sub!(factorizations, primes, a, b)
+end
+
+function sub!(
+    factorizations::Dict{Int, Accumulator{Int, Int}},
+    primes::Vector{Int},
+    a::Integer,
+    b::Integer,
+)::Int
     n = 2^a * 3^b
     fractions = (1//6,)
-    factors = factorize(fractran(n, fractions))
+    result = fractran!(factorizations, primes, n, fractions)
+    factors = factorize!(factorizations, primes, result)
+
     return if a == b
         0            # Empty product, as 2^(a-b) = 2^0 = 1 ⟹ factorize(1) = ∅.
     elseif a < b
@@ -365,11 +418,22 @@ Multiply `a` by `b` using the following FRACTRAN program:
 Note: `mul(a, b)` directly returns `a * b`, not `5^(a*b)`.
 """
 function mul(a::Integer, b::Integer)::Int
+    factorizations = Dict{Int, Accumulator{Int, Int}}()
+    primes = Int[]
+    return mul!(factorizations, primes, a, b)
+end
+
+function mul!(
+    factorizations::Dict{Int, Accumulator{Int, Int}},
+    primes::Vector{Int},
+    a::Integer,
+    b::Integer,
+)::Int
     n = 2^a * 3^b
     fractions = (455//33, 11//13, 1//11, 3//7, 11//2, 1//3)
     return (
-        fractran(n, fractions)
-        |> factorize
+        fractran!(factorizations, primes, n, fractions)
+        |> (x -> factorize!(factorizations, primes, x))
         |> values
         |> only
     )
@@ -391,9 +455,22 @@ Note: `divrem(a, b)` directly returns `(q, r)`, i.e., `(a ÷ b, a % b)`,
 not `5^q * 7^r`.
 """
 function divrem(a::Integer, b::Integer)::Tuple{Int, Int}
+    factorizations = Dict{Int, Accumulator{Int, Int}}()
+    primes = Int[]
+    return divrem!(factorizations, primes, a, b)
+end
+
+function divrem!(
+    factorizations::Dict{Int, Accumulator{Int, Int}},
+    primes::Vector{Int},
+    a::Integer,
+    b::Integer,
+)::Tuple{Int, Int}
     n = 2^a * 3^b * 11
     fractions = (91//66, 11//13, 1//33, 85//11, 57//119, 17//19, 11//17, 1//3)
-    factors = factorize(fractran(n, fractions))
+    result = fractran!(factorizations, primes, n, fractions)
+    factors = factorize!(factorizations, primes, result)
+
     return if haskey(factors, 5) && haskey(factors, 7)
         (factors[5], factors[7])  # Incomplete division with `q` and `r`.
     elseif haskey(factors, 7)
@@ -423,6 +500,16 @@ is very inefficient and may take a very long time even for small prime
 numbers.
 """
 function primegame(max_iterations::Integer = 100)::Vector{Int}
+    factorizations = Dict{Int, Accumulator{Int, Int}}()
+    primes = Int[]
+    return primegame!(factorizations, primes, max_iterations)
+end
+
+function primegame!(
+    factorizations::Dict{Int, Accumulator{Int, Int}},
+    primes::Vector{Int},
+    max_iterations::Integer = 100,
+)::Vector{Int}
     n = 2
     fractions = (
         17//91, 78//85, 19//51, 23//38, 29//33, 77//29, 95//23, 77//19, 1//17,
@@ -431,23 +518,30 @@ function primegame(max_iterations::Integer = 100)::Vector{Int}
     results = Int[]
 
     for _ in 1:max_iterations
-        result = fractran(n, fractions, return_first=true)
+        result = fractran!(
+            factorizations,
+            primes,
+            n,
+            fractions,
+            return_first=true,
+        )
+
         push!(results, result)
         n = result
     end
 
-    primes = Int[]
+    found_primes = Int[]
     for result in results
-        factors = factorize(result)
+        factors = factorize!(factorizations, primes, result)
         if (
             factors[2] >= 1
             && all(exponent == 0 for (base, exponent) in factors if base != 2)
         )
-            push!(primes, factors[2])
+            push!(found_primes, factors[2])
         end
     end
 
-    return primes
+    return found_primes
 end
 
 """
