@@ -49,27 +49,30 @@ function _isinteger(counter::Accumulator{Int, Int})::Bool
 end
 
 """
-    generate_primes(min_n::Int, max_n::Int)::Vector{Int}
-    generate_primes(max_n::Int)::Vector{Int}
+    generate_primes(min_n::Integer, max_n::Integer)::Vector{Int}
+    generate_primes(max_n::Integer)::Vector{Int}
 
 Compute the prime numbers from `min_n` to `max_n`, inclusive.  The
 second form defaults to `min_n = 2`.
 """
-function generate_primes(min_n::Int, max_n::Int)::Vector{Int}
+function generate_primes(min_n::Integer, max_n::Integer)::Vector{Int}
     # Check that `min_n` is greater than 1 and odd, or throw an error.
     min_n >= 2 || throw(_MDError(md"`min_n` must be `≥ 2`."))
     min_n == 2 || isodd(min_n) || throw(_MDError(md"`min_n` must be odd."))
     max_n >= min_n || throw(_MDError(md"`max_n` must be `≥ min_n`."))
 
-    if min_n == 2
-        min_n = 3
+    _min_n = Int(min_n)
+    _max_n = Int(max_n)
+
+    if _min_n == 2
+        _min_n = 3
         primes = [2]
     else
         primes = Int[]
     end
 
     # Set all odd integers as dividends to check in the trial division.
-    dividends = min_n:2:max_n
+    dividends = _min_n:2:_max_n
 
     # Successively divide each dividend by all odd divisors up to, and
     # including, the next-greater integer to the dividend's square root.
@@ -94,16 +97,16 @@ function generate_primes(min_n::Int, max_n::Int)::Vector{Int}
     return primes
 end
 
-generate_primes(max_n::Int)::Vector{Int} = generate_primes(2, max_n)
+generate_primes(max_n::Integer)::Vector{Int} = generate_primes(2, max_n)
 
 """
-    factorize(n::Int)::Accumulator{Int, Int}
+    factorize(n::Integer)::Accumulator{Int, Int}
 
 Factorize `n` to prime factors.  This yields an `Accumulator` mapping
 the factors' bases to their exponents (counts).  See
 [`factorize!`](@ref) for performance implications.
 """
-function factorize(n::Int)::Accumulator{Int, Int}
+function factorize(n::Integer)::Accumulator{Int, Int}
     factorizations = Dict{Int, Accumulator{Int, Int}}()
     primes = Int[]
     factorize!(factorizations, primes, n)
@@ -113,7 +116,7 @@ end
     factorize!(
         factorizations::Dict{Int, Accumulator{Int, Int}},
         primes::Vector{Int},
-        n::Int,
+        n::Integer,
     )::Accumulator{Int, Int}
 
 Factorize `n` to prime factors.  This yields an `Accumulator` mapping
@@ -131,20 +134,21 @@ storage targets.  Note that this is **not** thread-safe.
 function factorize!(
     factorizations::Dict{Int, Accumulator{Int, Int}},
     primes::Vector{Int},
-    n::Int,
+    n::Integer,
 )::Accumulator{Int, Int}
     # Check that `n` is positive, or throw an error.
     n >= 1 || throw(_MDError(md"`n` must be `≥ 1`."))
+    _n = Int(n)
 
-    # If the factorization has already been computed for `n`, return
+    # If the factorization has already been computed for `_n`, return
     # this (cached) value immediately.
     haskey(factorizations, n) && return factorizations[n]
 
     # Compute all prime numbers between the highest computed prime
     # number (plus 2, as the next integer would be even) and the square
-    # root of `n`, if needed.  These form the divisors to check in the
+    # root of `_n`, if needed.  These form the divisors to check in the
     # trial division.
-    max_divisor = ceil(Int, sqrt(n))
+    max_divisor = ceil(Int, sqrt(_n))
     if isempty(primes)
         min_divisor = 2
         if min_divisor <= max_divisor
@@ -159,7 +163,7 @@ function factorize!(
 
     # Successively divide the number `n` by all prime numbers, as often
     # as possible.
-    new_n = n
+    new_n = _n
     factors = Int[]
     for divisor in primes
         while new_n % divisor == 0
@@ -229,14 +233,14 @@ end
 
 """
     fractran(
-        n::Int,
-        fractions::Rational{Int}...;
+        n::Integer,
+        fractions::Rational{<:Integer}...;
         return_first::Bool = false,
     )::Int
 
     fractran(
-        n::Int,
-        fractions::Tuple{Vararg{Rational{Int}}};
+        n::Integer,
+        fractions::Tuple{Rational{<:Integer}, Vararg{Rational{<:Integer}}};
         return_first::Bool = false,
     )::Int
 
@@ -248,8 +252,8 @@ result—`return_first` is needed by some specific programs like PRIMEGAME
 that filter the FRACTRAN integers.
 """
 function fractran(
-    n::Int,
-    fractions::Rational{Int}...;
+    n::Integer,
+    fractions::Rational{<:Integer}...;
     return_first::Bool = false,
 )::Int
     # Factorize `n` and each `fraction` for more efficient operation on
@@ -296,15 +300,15 @@ function fractran(
 end
 
 function fractran(
-    n::Int,
-    fractions::Tuple{Rational{Int}, Vararg{Rational{Int}}};
+    n::Integer,
+    fractions::Tuple{Rational{<:Integer}, Vararg{Rational{<:Integer}}};
     return_first::Bool = false,
 )::Int
-    fractran(n, fractions...; return_first)
+    return fractran(n, fractions...; return_first)
 end
 
 """
-    add(a::Int, b::Int)::Int
+    add(a::Integer, b::Integer)::Int
 
 Add `b` to `a` using the following FRACTRAN program:
 
@@ -314,7 +318,7 @@ Add `b` to `a` using the following FRACTRAN program:
 
 Note: `add(a, b)` directly returns `a + b`, not `3^(a+b)`.
 """
-function add(a::Int, b::Int)::Int
+function add(a::Integer, b::Integer)::Int
     n = 2^a * 3^b
     fractions = (3//2,)
     return (
@@ -326,7 +330,7 @@ function add(a::Int, b::Int)::Int
 end
 
 """
-    sub(a::Int, b::Int)::Int
+    sub(a::Integer, b::Integer)::Int
 
 Subtract `b` from `a` using the following FRACTRAN program:
 
@@ -336,7 +340,7 @@ Subtract `b` from `a` using the following FRACTRAN program:
 
 Note: `sub(a, b)` directly returns `a - b`, not `2^(a-b)`.
 """
-function sub(a::Int, b::Int)::Int
+function sub(a::Integer, b::Integer)::Int
     n = 2^a * 3^b
     fractions = (1//6,)
     factors = factorize(fractran(n, fractions))
@@ -350,7 +354,7 @@ function sub(a::Int, b::Int)::Int
 end
 
 """
-    mul(a::Int, b::Int)::Int
+    mul(a::Integer, b::Integer)::Int
 
 Multiply `a` by `b` using the following FRACTRAN program:
 
@@ -360,7 +364,7 @@ Multiply `a` by `b` using the following FRACTRAN program:
 
 Note: `mul(a, b)` directly returns `a * b`, not `5^(a*b)`.
 """
-function mul(a::Int, b::Int)::Int
+function mul(a::Integer, b::Integer)::Int
     n = 2^a * 3^b
     fractions = (455//33, 11//13, 1//11, 3//7, 11//2, 1//3)
     return (
@@ -372,7 +376,7 @@ function mul(a::Int, b::Int)::Int
 end
 
 """
-    divrem(a::Int, b::Int)::Tuple{Int, Int}
+    divrem(a::Integer, b::Integer)::Tuple{Int, Int}
 
 Divide `a` by `b` (as Euclidian division) using the following FRACTRAN
 program:
@@ -386,7 +390,7 @@ program:
 Note: `divrem(a, b)` directly returns `(q, r)`, i.e., `(a ÷ b, a % b)`,
 not `5^q * 7^r`.
 """
-function divrem(a::Int, b::Int)::Tuple{Int, Int}
+function divrem(a::Integer, b::Integer)::Tuple{Int, Int}
     n = 2^a * 3^b * 11
     fractions = (91//66, 11//13, 1//33, 85//11, 57//119, 17//19, 11//17, 1//3)
     factors = factorize(fractran(n, fractions))
@@ -400,7 +404,7 @@ function divrem(a::Int, b::Int)::Tuple{Int, Int}
 end
 
 """
-    primegame(max_iterations::Int = 100)::Vector{Int}
+    primegame(max_iterations::Integer = 100)::Vector{Int}
 
 Find all prime numbers that are reachable by running `max_iterations`
 iterations of the algorithm using the following FRACTRAN program, called
@@ -418,7 +422,7 @@ including, `c`, not `2^c * 7^d`.  Also note that the PRIMEGAME algorithm
 is very inefficient and may take a very long time even for small prime
 numbers.
 """
-function primegame(max_iterations::Int = 100)::Vector{Int}
+function primegame(max_iterations::Integer = 100)::Vector{Int}
     n = 2
     fractions = (
         17//91, 78//85, 19//51, 23//38, 29//33, 77//29, 95//23, 77//19, 1//17,
@@ -426,7 +430,7 @@ function primegame(max_iterations::Int = 100)::Vector{Int}
     )
     results = [n]
 
-    for i in 1:max_iterations
+    for _ in 1:max_iterations
         result = fractran(n, fractions, return_first=true)
         push!(results, result)
         n = result
