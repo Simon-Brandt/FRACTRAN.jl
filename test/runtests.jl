@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-03
+# Last Modification: 2026-09-04
 
 using Markdown: Markdown, @md_str
 using Test: @test, @testset, @test_throws
@@ -31,8 +31,22 @@ using JET: JET
 
 using FRACTRAN
 
-# Define the prime numbers from 1 to 200 and the factorizations of 1 to
-# 100 as global constants for repeated usage in the tests.
+# Define the data types to test, the prime numbers from 1 to 200, and
+# the factorizations of 1 to 100 (including their prettified versions)
+# as global constants for repeated usage in the tests.
+const TYPES = (
+    UInt8,
+    UInt16,
+    UInt32,
+    UInt64,
+    UInt128,
+    Int8,
+    Int16,
+    Int32,
+    Int64,
+    Int128,
+)
+
 const PRIMES = [
            2,   3,        5,        7,
      11,       13,                 17,       19,
@@ -294,6 +308,12 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
         # 78,498, see https://www.mathematical.com/primes0to1000k.html.
         @test length(generate_primes(1_000_000)) == 78_498
 
+        # Test different argument types.
+        @testset "Prime number generation with argument type $T" for T in TYPES
+            @test generate_primes(T(2), T(100)) == filter(<(100), PRIMES)
+            @test generate_primes(T(100)) == filter(<(100), PRIMES)
+        end
+
         # Test invalid start and end numbers.
         @test_throws FRACTRAN._MDError generate_primes(1, 10)
         @test_throws _to_str(md"`min_n` must be `≥ 2`.") generate_primes(1, 10)
@@ -347,6 +367,11 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
 
         FRACTRAN.factorizations = Dict()
         FRACTRAN.primes = Int64[]
+
+        # Test different argument types.
+        @testset "Factorization of $i of type $T" for T in TYPES, i in 1:100
+            @test factorize(T(i)) == FACTORIZATIONS[i]
+        end
 
         # Test invalid numbers.
         @test_throws FRACTRAN._MDError factorize(-1)
@@ -410,7 +435,7 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
 
         # Test a highly composite number with many prime factors.
         @testset "Prettyprinting of highly composite number" begin
-            n = 2^5 * 3^2 * 5 * 7 * 11 * 13  # 1_441_440
+            n = 2^5 * 3^2 * 5 * 7 * 11 * 13  # 1,441,440
             @test prettify_factorization(factorize(n)) == "2⁵⋅3²⋅5⋅7⋅11⋅13"
         end
     end
@@ -421,41 +446,56 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
         # slightly different one than in `FRACTRAN.add`, and without the
         # destructuring of the result into the actual sum (without the
         # power).  First, test the call form using `Vararg`s, then using
-        # a `Tuple`.
-        @testset "General implementation, `Vararg`" for a in 1:10, b in 1:10
-            @test fractran(3^a * 5^b, 5//3) == 5^(a+b)
+        # a `Tuple`.  Only test different argument types for `n` with
+        # (`a`, `b`) combinations where `n = 3^a * 5^b` fits the type
+        # `T`.  Else, use the default `Int` type.
+        @testset "General implementation, `Vararg`" for T in TYPES, a in 1:10, b in 1:10
+            if 3^a * 5^b < typemax(T)
+                @test fractran(T(3^a * 5^b), T(5) // T(3)) == 5^(a+b)
+            else
+                @test fractran(3^a * 5^b, T(5) // T(3)) == 5^(a+b)
+            end
         end
 
-        @testset "General implementation, `Tuple`" for a in 1:10, b in 1:10
-            @test fractran(3^a * 5^b, (5//3,)) == 5^(a+b)
+        @testset "General implementation, `Tuple`" for T in TYPES, a in 1:10, b in 1:10
+            if 3^a * 5^b < typemax(T)
+                @test fractran(T(3^a * 5^b), (T(5) // T(3),)) == 5^(a+b)
+            else
+                @test fractran(3^a * 5^b, (T(5) // T(3),)) == 5^(a+b)
+            end
         end
 
         # Test the addition program.
-        @testset "Addition program" for a in 1:10, b in 1:10
-            @test FRACTRAN.add(a, b) == a + b
+        @testset "Addition program" for T in TYPES, a in 1:10, b in 1:10
+            @test FRACTRAN.add(T(a), T(b)) == a + b
         end
 
         # Test the subtraction program.
-        @testset "Subtraction program" for a in 1:10, b in 1:10
-            @test FRACTRAN.sub(a, b) == a - b
+        @testset "Subtraction program" for T in TYPES, a in 1:10, b in 1:10
+            @test FRACTRAN.sub(T(a), T(b)) == a - b
         end
 
         # Test the multiplication program.  Use only `1 ≤ a ≤ 4` and
         # `1 ≤ b ≤ 5` as otherwise, the prime number generation would
         # take too long.
-        @testset "Multiplication program" for a in 1:4, b in 1:5
-            @test FRACTRAN.mul(a, b) == a * b
+        @testset "Multiplication program" for T in TYPES, a in 1:4, b in 1:5
+            @test FRACTRAN.mul(T(a), T(b)) == a * b
         end
 
         # Test the division program.
-        @testset "Division program" for a in 1:10, b in 1:10
-            @test FRACTRAN.divrem(a, b) == divrem(a, b)
+        @testset "Division program" for T in TYPES, a in 1:10, b in 1:10
+            @test FRACTRAN.divrem(T(a), T(b)) == divrem(a, b)
         end
 
         # Test the PRIMEGAME program.
         @testset "PRIMEGAME program" begin
             @test FRACTRAN.primegame() == filter(<=(3), PRIMES)
+            @test FRACTRAN.primegame(100) == filter(<=(3), PRIMES)
             @test FRACTRAN.primegame(1000) == filter(<=(7), PRIMES)
+
+            @testset "PRIMEGAME program with input type $T" for T in TYPES
+                @test FRACTRAN.primegame(T(100)) == filter(<=(3), PRIMES)
+            end
         end
     end
 end
