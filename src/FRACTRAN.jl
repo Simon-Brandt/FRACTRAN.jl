@@ -428,7 +428,7 @@ function primegame(max_iterations::Integer = 100)::Vector{Int}
         17//91, 78//85, 19//51, 23//38, 29//33, 77//29, 95//23, 77//19, 1//17,
         11//13, 13//11, 15//2, 1//7, 55//1,
     )
-    results = [n]
+    results = Int[]
 
     for _ in 1:max_iterations
         result = fractran(n, fractions, return_first=true)
@@ -440,7 +440,7 @@ function primegame(max_iterations::Integer = 100)::Vector{Int}
     for result in results
         factors = factorize(result)
         if (
-            factors[2] > 1
+            factors[2] >= 1
             && all(exponent == 0 for (base, exponent) in factors if base != 2)
         )
             push!(primes, factors[2])
