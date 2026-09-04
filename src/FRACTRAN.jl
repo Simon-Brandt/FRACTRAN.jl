@@ -57,6 +57,8 @@ end
 Compute the prime numbers from `min_n` to `max_n`, inclusive.  The
 second form defaults to `min_n = 2`.
 """
+generate_primes(max_n::Integer)::Vector{Int} = generate_primes(2, max_n)
+
 function generate_primes(min_n::Integer, max_n::Integer)::Vector{Int}
     # Check that `min_n` is greater than 1 and odd, or throw an error.
     min_n >= 2 || throw(_MDError(md"`min_n` must be `≥ 2`."))
@@ -98,8 +100,6 @@ function generate_primes(min_n::Integer, max_n::Integer)::Vector{Int}
 
     return primes
 end
-
-generate_primes(max_n::Integer)::Vector{Int} = generate_primes(2, max_n)
 
 """
     factorize(n::Integer)::Accumulator{Int, Int}
@@ -255,12 +255,32 @@ that filter the FRACTRAN integers.
 """
 function fractran(
     n::Integer,
+    fractions::Tuple{Rational{<:Integer}, Vararg{Rational{<:Integer}}};
+    return_first::Bool = false,
+)::Int
+    factorizations = Dict{Int, Accumulator{Int, Int}}()
+    primes = Int[]
+    return fractran!(factorizations, primes, n, fractions...; return_first)
+end
+
+function fractran(
+    n::Integer,
     fractions::Rational{<:Integer}...;
     return_first::Bool = false,
 )::Int
     factorizations = Dict{Int, Accumulator{Int, Int}}()
     primes = Int[]
     return fractran!(factorizations, primes, n, fractions; return_first)
+end
+
+function fractran!(
+    factorizations::Dict{Int, Accumulator{Int, Int}},
+    primes::Vector{Int},
+    n::Integer,
+    fractions::Tuple{Rational{<:Integer}, Vararg{Rational{<:Integer}}};
+    return_first::Bool = false,
+)::Int
+    return fractran!(factorizations, primes, n, fractions...; return_first)
 end
 
 function fractran!(
@@ -314,26 +334,6 @@ function fractran!(
 
     # Undo the factorization to yield an integer as result.
     return prod(base ^ exponent for (base, exponent) in factors)
-end
-
-function fractran(
-    n::Integer,
-    fractions::Tuple{Rational{<:Integer}, Vararg{Rational{<:Integer}}};
-    return_first::Bool = false,
-)::Int
-    factorizations = Dict{Int, Accumulator{Int, Int}}()
-    primes = Int[]
-    return fractran!(factorizations, primes, n, fractions...; return_first)
-end
-
-function fractran!(
-    factorizations::Dict{Int, Accumulator{Int, Int}},
-    primes::Vector{Int},
-    n::Integer,
-    fractions::Tuple{Rational{<:Integer}, Vararg{Rational{<:Integer}}};
-    return_first::Bool = false,
-)::Int
-    return fractran!(factorizations, primes, n, fractions...; return_first)
 end
 
 """
