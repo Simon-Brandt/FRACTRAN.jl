@@ -181,6 +181,45 @@ function Base.showerror(io::IO, err::_MDError)
     show(io, MIME"text/plain"(), err.msg)  # Adds two spaces before `msg`.
 end
 
+function _add_docstring_note_function(function_name::AbstractString)::String
+    note = """
+    Unlike the non-mutating [`$(function_name)`](@ref),
+    [`$(function_name)!`](@ref) takes cache arguments of pre-computed
+    `factorizations` and `primes` and mutates them **in-place**, thus
+    updating the cache for future usage.  When needing to call
+    `$(function_name)` repeatedly, it is thus more efficient to call
+    `$(function_name)!` instead and pass shared `factorizations` and
+    `primes`.
+
+    To this end, `FRACTRAN.jl` provides two module-level cache
+    variables, [`FRACTRAN.factorizations`](@ref) and
+    [`FRACTRAN.primes`](@ref), which you can use as storage targets.
+
+    !!! warning
+        Using the module-level cache variables is **not** thread-safe.
+    """
+    return note
+end
+
+function _add_docstring_note_variable()::String
+    note = """
+    This optional cache can be useful to accelerate repeated
+    [`fractran`](@ref) calls when using `FRACTRAN.jl`'s mutating
+    functions.
+
+    These are:
+
+    - [`factorize!`](@ref)
+    - [`fractran!`](@ref)
+    - [`add!`](@ref)
+    - [`sub!`](@ref)
+    - [`mul!`](@ref)
+    - [`divrem!`](@ref)
+    - [`primegame!`](@ref)
+    """
+    return note
+end
+
 function _isinteger(counter::Accumulator{Int, Int})::Bool
     # Return whether the `counter`'s value (exponent) is positive for
     # all keys (bases).  Then, the represented number is also positive,
@@ -192,8 +231,35 @@ end
     generate_primes(min_n::Integer, max_n::Integer)::Vector{Int}
     generate_primes(max_n::Integer)::Vector{Int}
 
-Compute the prime numbers from `min_n` to `max_n`, inclusive.  The
-second form defaults to `min_n = 2`.
+Compute the prime numbers from `min_n` to `max_n`, inclusive.
+
+The second form defaults to `min_n = 2`.
+
+# Examples
+
+```jldoctest
+julia> generate_primes(2, 20)
+8-element Vector{Int64}:
+  2
+  3
+  5
+  7
+ 11
+ 13
+ 17
+ 19
+
+julia> generate_primes(10)     # Usage of default value 2 for `min_n`.
+4-element Vector{Int64}:
+ 2
+ 3
+ 5
+ 7
+
+julia> generate_primes(-5, 1)  # There's no prime number below 2.
+ERROR: ArgumentError:  min_n must be ≥ 2.
+[...]
+```
 """
 generate_primes(max_n::Integer)::Vector{Int} = generate_primes(2, max_n)
 
@@ -242,35 +308,47 @@ end
 """
     factorize(n::Integer)::Accumulator{Int, Int}
 
-Factorize `n` to prime factors.  This yields an `Accumulator` mapping
-the factors' bases to their exponents (counts).  See
-[`factorize!`](@ref) for performance implications.
-"""
-function factorize(n::Integer)::Accumulator{Int, Int}
-    factorizations = Dict{Int, Accumulator{Int, Int}}()
-    primes = Int[]
-    return factorize!(factorizations, primes, n)
-end
-
-"""
     factorize!(
         factorizations::Dict{Int, Accumulator{Int, Int}},
         primes::Vector{Int},
         n::Integer,
     )::Accumulator{Int, Int}
 
-Factorize `n` to prime factors.  This yields an `Accumulator` mapping
-the factors' bases to their exponents (counts).
+Factorize `n` to prime factors.
 
-Unlike the non-mutating [`factorize`](@ref), `factorize!` takes cache
-arguments of pre-computed `factorizations` and `primes` and mutates them
-**in-place**, thus updating the cache for future usage.  When needing to
-call `factorize` repeatedly, it is thus more efficient to call
-`factorize!` instead and pass shared `factorizations` and `primes`.  To
-this end, `FRACTRAN.jl` provides two module-level cache variables,
-`FRACTRAN.factorizations` and `FRACTRAN.primes`, which you can use as
-storage targets.  Note that this is **not** thread-safe.
+The factorization yields an `Accumulator` mapping the factors' bases to
+their exponents (counts).  The second form takes cache arguments for
+accelerated computations, see the [Extended help](@ref).
+
+# Examples
+
+```jldoctest
+julia> factorize(120)  # Composite number.
+DataStructures.Accumulator{Int64, Int64} with 3 entries:
+  5 => 1
+  2 => 3
+  3 => 1
+
+julia> factorize(7)    # Prime number.
+DataStructures.Accumulator{Int64, Int64} with 1 entry:
+  7 => 1
+
+julia> factorize(1)    # Empty product.
+Accumulator{Int64,Int64}()
+```
+
+# Extended help
+
+$(_add_docstring_note_function("factorize"))
 """
+factorize, factorize!
+
+function factorize(n::Integer)::Accumulator{Int, Int}
+    factorizations = Dict{Int, Accumulator{Int, Int}}()
+    primes = Int[]
+    return factorize!(factorizations, primes, n)
+end
+
 function factorize!(
     factorizations::Dict{Int, Accumulator{Int, Int}},
     primes::Vector{Int},
@@ -334,6 +412,28 @@ If `explicit_one` is `true` (default: `false`), also print exponents of
 one (`1`), as `¹`.  If `verbose` is `true` (default: `false`), expand
 the exponents to individual factors.  In this case, `explicit_one` has
 no effect.
+
+# Examples
+
+```jldoctest
+julia> factors = factorize(120)
+DataStructures.Accumulator{Int64, Int64} with 3 entries:
+  5 => 1
+  2 => 3
+  3 => 1
+
+julia> prettify_factorization(factors)
+"2³⋅3⋅5"
+
+julia> prettify_factorization(factorize(120))  # Same as above.
+"2³⋅3⋅5"
+
+julia> prettify_factorization(factorize(120), explicit_one=true)
+"2³⋅3¹⋅5¹"
+
+julia> prettify_factorization(factorize(120), verbose=true)
+"2⋅2⋅2⋅3⋅5"
+```
 """
 function prettify_factorization(
     factors::Accumulator{Int, Int};
@@ -384,13 +484,79 @@ end
         return_first::Bool = false,
     )::Int
 
+    fractran!(
+        factorizations::Dict{Int, Accumulator{Int, Int}},
+        primes::Vector{Int},
+        n::Integer,
+        fractions::Rational{<:Integer}...;
+        return_first::Bool = false,
+    )::Int
+
+    fractran!(
+        factorizations::Dict{Int, Accumulator{Int, Int}},
+        primes::Vector{Int},
+        n::Integer,
+        fractions::Tuple{Rational{<:Integer}, Vararg{Rational{<:Integer}}};
+        return_first::Bool = false,
+    )::Int
+
 Run the FRACTRAN algorithm on the start value `n` using the `fractions`.
-*Iff* `return_first` is `true`, return the first obtained integer.
-Else, run the algorithm until no fraction yields an integer and return
-the last integer.  This is the FRACTRAN algorithm's actual
-result—`return_first` is needed by some specific programs like PRIMEGAME
-that filter the FRACTRAN integers.
+
+*Iff* `return_first` is `true` (default: `false`), return the first
+obtained integer.  Else, run the algorithm until no fraction yields an
+integer and return the last integer.  This is the FRACTRAN algorithm's
+actual result—`return_first` is needed by some specific programs like
+PRIMEGAME that filter the FRACTRAN integers.
+
+The third and fourth forms take cache arguments for accelerated
+computations, see the [Extended help](@ref).
+
+# Examples
+
+## Simple addition program
+
+```jldoctest
+julia> using FRACTRAN
+
+julia> n = 432;                # Start number: 2^4 * 3^3 (operands 4 and 3).
+
+julia> fractions = (3//2,);    # FRACTRAN program for addition.
+
+julia> fractran(n, fractions)  # FRACTRAN invocation.
+2187
+
+julia> factorize(ans)          # Get exponents, result is in register `3`.
+DataStructures.Accumulator{Int64, Int64} with 1 entry:
+  3 => 7
+```
+
+## Subtraction program with cache
+
+```jldoctest
+julia> using DataStructures: DataStructures
+
+julia> factorizations = Dict{Int, DataStructures.Accumulator{Int, Int}}();
+
+julia> primes = Int[];
+
+julia> n = 432;                # Start number: 2^4 * 3^3 (operands 4 and 3).
+
+julia> fractions = (1//6,);    # FRACTRAN program for subtraction.
+
+julia> fractran(n, fractions)  # FRACTRAN invocation.
+2
+
+julia> factorize(ans)          # Get exponents, result is in register `2`.
+DataStructures.Accumulator{Int64, Int64} with 1 entry:
+  2 => 1
+```
+
+# Extended help
+
+$(_add_docstring_note_function("fractran"))
 """
+fractran, fractran!
+
 function fractran(
     n::Integer,
     fractions::Tuple{Rational{<:Integer}, Vararg{Rational{<:Integer}}};
@@ -477,14 +643,43 @@ end
 """
     add(a::Integer, b::Integer)::Int
 
+    add!(
+        factorizations::Dict{Int, Accumulator{Int, Int}},
+        primes::Vector{Int},
+        a::Integer,
+        b::Integer,
+    )::Int
+
 Add `b` to `a` using the following FRACTRAN program:
 
 - Start value:  `n = 2^a * 3^b`
 - Fractions:    `3//2`
 - Result:       `3^(a+b)`
 
-Note: `add(a, b)` directly returns `a + b`, not `3^(a+b)`.
+The second form takes cache arguments for accelerated computations, see
+the [Extended help](@ref).
+
+!!! note
+    `add(a, b)` directly returns `a + b`, not `3^(a+b)`.
+
+# Examples
+
+```jldoctest
+julia> using FRACTRAN
+
+julia> FRACTRAN.add(4, 3)
+7
+
+julia> FRACTRAN.add(1, 2)
+3
+```
+
+# Extended help
+
+$(_add_docstring_note_function("add"))
 """
+add, add!
+
 function add(a::Integer, b::Integer)::Int
     factorizations = Dict{Int, Accumulator{Int, Int}}()
     primes = Int[]
@@ -510,14 +705,43 @@ end
 """
     sub(a::Integer, b::Integer)::Int
 
+    sub!(
+        factorizations::Dict{Int, Accumulator{Int, Int}},
+        primes::Vector{Int},
+        a::Integer,
+        b::Integer,
+    )::Int
+
 Subtract `b` from `a` using the following FRACTRAN program:
 
 - Start value:  `n = 2^a * 3^b`
 - Fractions:    `1//6`
 - Result:       `2^(a-b)`
 
-Note: `sub(a, b)` directly returns `a - b`, not `2^(a-b)`.
+The second form takes cache arguments for accelerated computations, see
+the [Extended help](@ref).
+
+!!! note
+    `sub(a, b)` directly returns `a - b`, not `2^(a-b)`.
+
+# Examples
+
+```jldoctest
+julia> using FRACTRAN
+
+julia> FRACTRAN.sub(4, 3)
+1
+
+julia> FRACTRAN.sub(1, 2)
+-1
+```
+
+# Extended help
+
+$(_add_docstring_note_function("sub"))
 """
+sub, sub!
+
 function sub(a::Integer, b::Integer)::Int
     factorizations = Dict{Int, Accumulator{Int, Int}}()
     primes = Int[]
@@ -547,14 +771,43 @@ end
 """
     mul(a::Integer, b::Integer)::Int
 
+    mul!(
+        factorizations::Dict{Int, Accumulator{Int, Int}},
+        primes::Vector{Int},
+        a::Integer,
+        b::Integer,
+    )::Int
+
 Multiply `a` by `b` using the following FRACTRAN program:
 
 - Start value:  `n = 2^a * 3^b`
 - Fractions:    `455//33`, `11//13`, `1//11`, `3//7`, `11//2`, `1//3`
 - Result:       `5^(a*b)`
 
-Note: `mul(a, b)` directly returns `a * b`, not `5^(a*b)`.
+The second form takes cache arguments for accelerated computations, see
+the [Extended help](@ref).
+
+!!! note
+    `mul(a, b)` directly returns `a * b`, not `5^(a*b)`.
+
+# Examples
+
+```jldoctest
+julia> using FRACTRAN
+
+julia> FRACTRAN.mul(4, 3)
+12
+
+julia> FRACTRAN.mul(1, 2)
+2
+```
+
+# Extended help
+
+$(_add_docstring_note_function("mul"))
 """
+mul, mul!
+
 function mul(a::Integer, b::Integer)::Int
     factorizations = Dict{Int, Accumulator{Int, Int}}()
     primes = Int[]
@@ -580,6 +833,13 @@ end
 """
     divrem(a::Integer, b::Integer)::Tuple{Int, Int}
 
+    divrem!(
+        factorizations::Dict{Int, Accumulator{Int, Int}},
+        primes::Vector{Int},
+        a::Integer,
+        b::Integer,
+    )::Tuple{Int, Int}
+
 Divide `a` by `b` (as Euclidian division) using the following FRACTRAN
 program:
 
@@ -589,9 +849,34 @@ program:
 - Result:       `5^q * 7^r` (`q ≔ a ÷ b`: quotient, `r ≔ a % b`:
                 remainder)
 
-Note: `divrem(a, b)` directly returns `(q, r)`, i.e., `(a ÷ b, a % b)`,
-not `5^q * 7^r`.
+The second form takes cache arguments for accelerated computations, see
+the [Extended help](@ref).
+
+!!! note
+    `divrem(a, b)` directly returns `(q, r)`, i.e., `(a ÷ b, a % b)`,
+    not `5^q * 7^r`.
+
+# Examples
+
+```jldoctest
+julia> using FRACTRAN
+
+julia> FRACTRAN.divrem(4, 3)
+(1, 1)
+
+julia> FRACTRAN.divrem(1, 2)
+(0, 1)
+
+julia> FRACTRAN.divrem(2, 1)
+(2, 0)
+```
+
+# Extended help
+
+$(_add_docstring_note_function("divrem"))
 """
+divrem, divrem!
+
 function divrem(a::Integer, b::Integer)::Tuple{Int, Int}
     factorizations = Dict{Int, Accumulator{Int, Int}}()
     primes = Int[]
@@ -621,9 +906,15 @@ end
 """
     primegame(max_iterations::Integer = 100)::Vector{Int}
 
+    primegame!(
+        factorizations::Dict{Int, Accumulator{Int, Int}},
+        primes::Vector{Int},
+        max_iterations::Integer = 100,
+    )::Vector{Int}
+
 Find all prime numbers that are reachable by running `max_iterations`
-iterations of the algorithm using the following FRACTRAN program, called
-"PRIMEGAME":
+(default: `100`) iterations of the algorithm using the following
+FRACTRAN program, called "PRIMEGAME":
 
 - Start value:  `n = 2` (in PRIMEGAME, more generally, `n = 2^a * 7^b`)
 - Fractions:    `17//91`, `78//85`, `19//51`, `23//38`, `29//33`,
@@ -632,11 +923,38 @@ iterations of the algorithm using the following FRACTRAN program, called
 - Result:       `2^c * 7^d`, with `c ≤ a` and `d ≤ b`, a prime number
                 *iff* `d == 0`
 
-Note: `primegame(n)` directly returns all prime numbers up to, and
-including, `c`, not `2^c * 7^d`.  Also note that the PRIMEGAME algorithm
-is very inefficient and may take a very long time even for small prime
-numbers.
+The second form takes cache arguments for accelerated computations, see
+the [Extended help](@ref).
+
+!!! note
+    `primegame(n)` directly returns all prime numbers up to, and
+    including, `c`, not `2^c * 7^d`.  Also note that the PRIMEGAME
+    algorithm is very inefficient and may take a very long time even for
+    small prime numbers.
+
+# Examples
+
+```jldoctest
+julia> using FRACTRAN
+
+julia> FRACTRAN.primegame(300)  # Number of FRACTRAN iterations.
+3-element Vector{Int64}:
+ 2
+ 3
+ 5
+
+julia> FRACTRAN.primegame()     # Usage of default value 100.
+2-element Vector{Int64}:
+ 2
+ 3
+```
+
+# Extended help
+
+$(_add_docstring_note_function("primegame"))
 """
+primegame, primegame!
+
 function primegame(max_iterations::Integer = 100)::Vector{Int}
     factorizations = Dict{Int, Accumulator{Int, Int}}()
     primes = Int[]
@@ -683,15 +1001,21 @@ function primegame!(
 end
 
 """
-Module-level cache for yet computed factorizations, for optional usage
-in [`factorize!`](@ref).
+Module-level cache for yet computed factorizations.
+
+# Extended help
+
+$(_add_docstring_note_variable())
 """
 factorizations::Dict{Int, Accumulator{Int, Int}} =
     Dict{Int, Accumulator{Int, Int}}()
 
 """
-Module-level cache for yet computed prime numbers, for optional usage in
-[`factorize!`](@ref).
+Module-level cache for yet computed prime numbers.
+
+# Extended help
+
+$(_add_docstring_note_variable())
 """
 primes::Vector{Int} = Int[]
 
