@@ -104,8 +104,6 @@ per call and only persistent for the internal sub-calls.
 ### Manual addition program
 
 ```jldoctest
-julia> using FRACTRAN
-
 julia> n = 432;                # Start number: 2^4 * 3^3 (operands 4 and 3).
 
 julia> fractions = (3//2,);    # FRACTRAN program for addition.
@@ -318,7 +316,7 @@ Factorize `n` to prime factors.
 
 The factorization yields an `Accumulator` mapping the factors' bases to
 their exponents (counts).  The second form takes cache arguments for
-accelerated computations, see the [Extended help](@ref).
+accelerated computations, see the Extended help.
 
 # Examples
 
@@ -509,15 +507,13 @@ actual result—`return_first` is needed by some specific programs like
 PRIMEGAME that filter the FRACTRAN integers.
 
 The third and fourth forms take cache arguments for accelerated
-computations, see the [Extended help](@ref).
+computations, see the Extended help.
 
 # Examples
 
 ## Simple addition program
 
 ```jldoctest
-julia> using FRACTRAN
-
 julia> n = 432;                # Start number: 2^4 * 3^3 (operands 4 and 3).
 
 julia> fractions = (3//2,);    # FRACTRAN program for addition.
@@ -657,7 +653,7 @@ Add `b` to `a` using the following FRACTRAN program:
 - Result:       `3^(a+b)`
 
 The second form takes cache arguments for accelerated computations, see
-the [Extended help](@ref).
+the Extended help.
 
 !!! note
     `add(a, b)` directly returns `a + b`, not `3^(a+b)`.
@@ -665,8 +661,6 @@ the [Extended help](@ref).
 # Examples
 
 ```jldoctest
-julia> using FRACTRAN
-
 julia> FRACTRAN.add(4, 3)
 7
 
@@ -719,7 +713,7 @@ Subtract `b` from `a` using the following FRACTRAN program:
 - Result:       `2^(a-b)`
 
 The second form takes cache arguments for accelerated computations, see
-the [Extended help](@ref).
+the Extended help.
 
 !!! note
     `sub(a, b)` directly returns `a - b`, not `2^(a-b)`.
@@ -727,8 +721,6 @@ the [Extended help](@ref).
 # Examples
 
 ```jldoctest
-julia> using FRACTRAN
-
 julia> FRACTRAN.sub(4, 3)
 1
 
@@ -785,7 +777,7 @@ Multiply `a` by `b` using the following FRACTRAN program:
 - Result:       `5^(a*b)`
 
 The second form takes cache arguments for accelerated computations, see
-the [Extended help](@ref).
+the Extended help.
 
 !!! note
     `mul(a, b)` directly returns `a * b`, not `5^(a*b)`.
@@ -793,8 +785,6 @@ the [Extended help](@ref).
 # Examples
 
 ```jldoctest
-julia> using FRACTRAN
-
 julia> FRACTRAN.mul(4, 3)
 12
 
@@ -850,7 +840,7 @@ program:
                 remainder)
 
 The second form takes cache arguments for accelerated computations, see
-the [Extended help](@ref).
+the Extended help.
 
 !!! note
     `divrem(a, b)` directly returns `(q, r)`, i.e., `(a ÷ b, a % b)`,
@@ -859,8 +849,6 @@ the [Extended help](@ref).
 # Examples
 
 ```jldoctest
-julia> using FRACTRAN
-
 julia> FRACTRAN.divrem(4, 3)
 (1, 1)
 
@@ -925,7 +913,7 @@ FRACTRAN program, called "PRIMEGAME":
                 *iff* `d == 0`
 
 The second form takes cache arguments for accelerated computations, see
-the [Extended help](@ref).
+the Extended help.
 
 !!! note
     `primegame(n)` directly returns all prime numbers up to, and
@@ -936,8 +924,6 @@ the [Extended help](@ref).
 # Examples
 
 ```jldoctest
-julia> using FRACTRAN
-
 julia> FRACTRAN.primegame(300)  # Number of FRACTRAN iterations.
 3-element Vector{Int64}:
  2
