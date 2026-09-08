@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-07
+# Last Modification: 2026-09-08
 
 """
 Julia implementation of the esoteric programming language FRACTRAN.
@@ -875,8 +875,9 @@ julia> FRACTRAN.divrem(2, 1)
 
 $(_add_docstring_note_function("divrem"))
 """
-divrem, divrem!
+divrem!
 
+@doc (@doc divrem!)  # Workaround to prevent doc collision with `Base.divrem`.
 function divrem(a::Integer, b::Integer)::Tuple{Int, Int}
     factorizations = Dict{Int, Accumulator{Int, Int}}()
     primes = Int[]
