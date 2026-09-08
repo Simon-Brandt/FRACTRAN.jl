@@ -20,13 +20,14 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-04
+# Last Modification: 2026-09-08
 
 using Markdown: Markdown, @md_str
 using Test: @test, @testset, @test_throws
 
 using Aqua: Aqua
 using DataStructures: Accumulator
+using Documenter: Documenter
 using JET: JET
 
 using FRACTRAN
@@ -498,4 +499,12 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
             end
         end
     end
+
+    # Run the doctests.
+    Documenter.doctest(
+        FRACTRAN,
+        testset="Doctests (Documenter.jl)",
+        manual=false,
+        meta = Dict(:DocTestSetup => :(using FRACTRAN)),
+    )
 end
