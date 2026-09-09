@@ -1,5 +1,13 @@
-using FRACTRAN
+#!/usr/bin/env julia
+
+# Author: Simon Brandt
+# E-Mail: simon.brandt@uni-greifswald.de
+# Last Modification: 2026-09-09
+# License: Public Domain
+
 using Documenter
+
+using FRACTRAN
 
 DocMeta.setdocmeta!(FRACTRAN, :DocTestSetup, :(using FRACTRAN); recursive=true)
 
@@ -11,9 +19,11 @@ makedocs(;
         canonical="https://Simon-Brandt.github.io/FRACTRAN.jl",
         edit_link="main",
         assets=String[],
+        prettyurls=false,  # TODO: Remove.
     ),
     pages=[
         "Home" => "index.md",
+        "API reference" => "reference.md",
     ],
 )
 
