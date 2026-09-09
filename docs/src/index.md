@@ -60,3 +60,7 @@ Since the FRACTRAN algorithm is rather slow, especially PRIMEGAME, FRACTRAN.jl a
 
 !!! note
     In order not to clutter your namespace upon `using FRACTRAN`, the caches and example programs are only declared as `public`, but not `export`ed.  You can access them by prefixing them with the module name, i.e., as `FRACTRAN.add` etc.
+
+## Future enhancements
+
+To simplify working with FRACTRAN, logging the currently performed computation steps may be useful, in order to show how the fractions get evaluated.  It is currently an open issue how much REPL-like this logging shall be, or whether `@info`-like messages (or even bare `println` calls) may be more useful.
