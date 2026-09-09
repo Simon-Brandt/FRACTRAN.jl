@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-08
+# Last Modification: 2026-09-09
 
 """
 Julia implementation of the esoteric programming language FRACTRAN.
@@ -30,74 +30,69 @@ Julia implementation of the esoteric programming language FRACTRAN.
 ## Algorithm
 
 [FRACTRAN](https://en.wikipedia.org/wiki/FRACTRAN) is an esoteric
-programming language, based on fractions, that was developed by
+programming language developed by
 [John Conway](https://en.wikipedia.org/wiki/John_Horton_Conway) in 1987.
+The algorithm behind FRACTRAN is based on multiplying a natural number
+(the start number ``n``) successively by fractions (``f``), until a new
+natural number is obtained, the algorithm's result.  FRACTRAN.jl
+implements this algorithm in the [`fractran`](@ref) function.
 
-The algorithm behind FRACTRAN works by taking a natural number ``n`` and
-an ordered collection of fractions ``f``.  ``n`` gets multiplied by each
-fraction ``fᵢ``, until the result ``n⋅fᵢ`` is an integer, i.e.,
-``n⋅fᵢ ∈ ℕ``.  This integer gets multiplied again with the fractions,
-starting from the first one, ``f₁``, until no product ``n⋅fᵢ`` leads an
-integer, anymore.  The last obtained integer marks the result of the
-FRACTRAN algorithm.
+For a more extensive overview over FRACTRAN, refer to the
+[FRACTRAN.jl documentation](https://Simon-Brandt.github.io/FRACTRAN.jl),
+the [Wikipedia entry](https://en.wikipedia.org/wiki/FRACTRAN), or the
+[Esolang wiki](https://esolangs.org/wiki/Fractran).
 
-Generally, multiplying a natural number by a fraction, as required for
-FRACTRAN, is equivalent to adding/subtracting exponents in the prime
-factorization of the number and the fraction's numerator/denominator.
-Thus, FRACTRAN can be considered an implementation of a register machine
-whose registers are the prime factors, and whose stored values are the
-factors' exponents.  Basically, the natural numbers, the products of
-their factorizations, encode these registers' values by
-[Gödel numbering](https://en.wikipedia.org/wiki/Gödel_numbering).
+!!! note
+    FRACTRAN is rather slow, especially more complex programs like
+    PRIMEGAME.
+
+    !!! warning
+        Rather do not use FRACTRAN in performance-critical applications
+        or production environments, just for educational purposes.
+
+    !!! tip
+        Unless you [need a break](https://xkcd.com/303/)…
 
 ## Module contents
 
-`FRACTRAN.jl` provides multiple functions to work with the FRACTRAN
-algorithm: an implementation of the algorithm itself, several example
-programs, and a prime number generator for factorizating the numbers for
-FRACTRAN.  Thus, you might also use `FRACTRAN.jl` if you're working with
-factorizations, but note that the implementation uses simple trial
-division for finding prime numbers, with lesser performance than
-optimized prime factorization algorithms.  This is sufficient for
-FRACTRAN, since the language is slow by itself and thus only really
-suitable as educational tool, but you may want to use more optimized
-libraries if you're only needing a factorization algorithm.
+FRACTRAN.jl provides both an implementation of the algorithm itself, as
+well as several example FRACTRAN programs.  Additionally, the module
+contains a prime number generator and a factorization function for
+factorizating the numbers for FRACTRAN.
 
-The core of this module is formed by the [`fractran`](@ref) function,
-which implements the FRACTRAN algorithm.  Since prime numbers are the
-center of this algorithm, `FRACTRAN.jl` also includes a function to
-generate a list of prime numbers, [`generate_primes`](@ref).  These
-prime numbers are required for factorizing the numbers using the
-[`factorize`](@ref) function—as needed for `fractran`.  There is also
-the (internally unused) function [`prettify_factorization`](@ref) that
-you might want to use to create a string representation of a
-factorization for pretty-printing.
+The actual FRACTRAN implementation lies within the [`fractran`](@ref)
+function.  For using FRACTRAN, you only need to pass the start number
+and fractions to `fractran`, and get the algorithm's result back as
+integer.
 
-Further, `FRACTRAN.jl` provides a set of example functions implementing
-some selected FRACTRAN programs: [`add`](@ref) adds two numbers,
-[`sub`](@ref) subtracts them, [`mul`](@ref) multiplies them, and
-[`divrem`](@ref) divides them with remainder.  Additionally, the
-[`primegame`](@ref) function implements the perhaps most famous FRACTRAN
-program, called "PRIMEGAME", which generates prime numbers.
+To show the possibilities of FRACTRAN (it's Turing-complete, after all),
+FRACTRAN.jl provides some (`public`, not `export`ed) example FRACTRAN
+functions: [`add`](@ref), [`sub`](@ref), [`mul`](@ref), and
+[`divrem`](@ref) for the respective arithmetic operations.  A fifth
+function, [`primegame`](@ref), implements the famous PRIMEGAME program,
+which generates prime numbers.  You may also want to have a look at the
+[source code](https://github.com/Simon-Brandt/FRACTRAN.jl/blob/main/src/FRACTRAN.jl)
+to see how to programmatically use FRACTRAN in Julia.
 
-Since the FRACTRAN algorithm is rather slow, especially PRIMEGAME,
-`FRACTRAN.jl` also includes two module-level caches,
-[`factorizations`](@ref) and [`primes`](@ref).  These caches may be used
-for accelerating repeated `fractran` calls.  To this end, `factorize`,
-`fractran`, and all example programs have a second form with exclamation
-mark (like [`factorize!`](@ref), [`fractran!`](@ref) etc.), that take
-caches as additional arguments for in-place mutation.  You may either
-use the provided module-level caches or pass your own objects to them,
-depending on the intended persistence of the caches.  Note that
-internally, each invocation still uses cached values, even for the
-function variants without exclamation marks, but these are re-computed
-per call and only persistent for the internal sub-calls.
+Finally, as FRACTRAN is prime number–based, FRACTRAN.jl also includes a
+function for prime factorization, [`factorize`](@ref), which uses
+[`generate_primes`](@ref) to generate a list of prime numbers.
 
 !!! note
-    In order not to clutter your namespace upon `using FRACTRAN`, the
-    caches and example programs are only declared as `public`, but not
-    `export`ed.  You can access them by prefixing them with the module
-    name, i.e., as `FRACTRAN.add` etc.
+    Though you can use `generate_primes` and `factorize` for other
+    purposes, the implementation is (intentionally) not optimized for
+    performance.
+
+!!! tip
+    You may visualize the factorization with
+    [`prettify_factorization`](@ref).
+
+To accelerate repeated `fractran` calls, `factorize`, `fractran`, and
+all example programs have a second form with exclamation mark (like
+[`factorize!`](@ref), [`fractran!`](@ref) etc.) that take cache
+arguments for in-place mutation.  FRACTRAN.jl provides two module-level
+caches for this, [`factorizations`](@ref) and [`primes`](@ref), which
+you can use alongside your own objects.
 
 ## Examples
 
@@ -116,7 +111,7 @@ DataStructures.Accumulator{Int64, Int64} with 1 entry:
   3 => 7
 ```
 
-### `FRACTRAN.jl` example programs
+### FRACTRAN.jl example programs
 
 ```jldoctest
 julia> FRACTRAN.add(4, 3)
@@ -189,9 +184,9 @@ function _add_docstring_note_function(function_name::AbstractString)::String
     `$(function_name)!` instead and pass shared `factorizations` and
     `primes`.
 
-    To this end, `FRACTRAN.jl` provides two module-level cache
-    variables, [`FRACTRAN.factorizations`](@ref) and
-    [`FRACTRAN.primes`](@ref), which you can use as storage targets.
+    To this end, FRACTRAN.jl provides two module-level cache variables,
+    [`FRACTRAN.factorizations`](@ref) and [`FRACTRAN.primes`](@ref),
+    which you can use as storage targets.
 
     !!! warning
         Using the module-level cache variables is **not** thread-safe.
@@ -202,7 +197,7 @@ end
 function _add_docstring_note_variable()::String
     note = """
     This optional cache can be useful to accelerate repeated
-    [`fractran`](@ref) calls when using `FRACTRAN.jl`'s mutating
+    [`fractran`](@ref) calls when using FRACTRAN.jl's mutating
     functions.
 
     These are:
