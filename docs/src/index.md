@@ -1,4 +1,6 @@
-<!--
+# FRACTRAN.jl
+
+```@raw text
 ###############################################################################
 #                                                                             #
 # Copyright 2026 Simon Brandt                                                 #
@@ -16,13 +18,11 @@
 # limitations under the License.                                              #
 #                                                                             #
 ###############################################################################
--->
+```
 
 ```@meta
 CurrentModule = FRACTRAN
 ```
-
-# FRACTRAN
 
 Documentation for [FRACTRAN](https://github.com/Simon-Brandt/FRACTRAN.jl).
 
