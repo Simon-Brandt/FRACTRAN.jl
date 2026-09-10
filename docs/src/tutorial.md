@@ -26,6 +26,9 @@ CurrentModule = FRACTRAN
 
 To guide you through FRACTRAN.jl's functionality, the following sections show some application examples of FRACTRAN.
 
+!!! note
+    Each section runs in its own REPL environment, implicitly with `using FRACTRAN` in the beginning.  Thus, the caches are reset between sections.
+
 ## Table of contents
 
 ```@contents
@@ -132,3 +135,64 @@ n = 2 * 3 * 5 * 7 * 11 * 13 * 17 * 19  # Large number.
 ```
 
 Granted, though the factorization runs a lot faster, on this order of magnitude of total runtime, we don't need to care about performance.  Later in this tutorial, however, we'll see how stored prime numbers can offer a lot of runtime gain.
+
+## FRACTRAN implementation
+
+Having discussed how factorizations work in FRACTRAN.jl, it is time to understand *why* they are useful: In FRACTRAN, a natural number ``n`` gets multiplied by a list of fractions ``f``, until the product ``n⋅fᵢ`` is again a natural number.  Multiplying by a fraction means to multiply by the numerator and divide by the denominator.  On the one hand, divisions are rather slow, and on the other, lead to fractional results, best as `Rational` type, worst as `FloatXY` type.  FRACTRAN.jl implements the algorithm in the [`fractran`](@ref) function, which, instead of multiplying by fractions, factorizes both the start number and each fraction's numerator and denominator *once*.  Then, the numerators are added and the denominators subtracted in *factorized* form, *i.e.*, on the exponents.  This keeps the core algorithm a pure `Int` algorithm and greatly simplifies judging whether the product is a natural number: If so, all exponents are positive; if not, then at least one is negative.  Now, the algorithm just keeps looping through the fractions, until none creates a natural number, anymore, which `fractran` then returns.
+
+A FRACTRAN program consists of a start number and a list of fractions, so you need to pass only them to `fractran`.  For the sake of the first example, we'll use a very simple one-fraction program:
+
+```@setup fractran
+using FRACTRAN
+```
+
+```@repl fractran
+n = 2^3 * 3^4
+fractions = (2//3,)
+result = fractran(n, fractions)
+```
+
+How do we interpret the result?  The program ``\frac{2}{3}`` *increments* the register `2`'s value and *decrements* the register `3`'s value on every multiplication step (multiplication by ``2`` and division by ``3``).  Running on ``648`` yields ``128``.  Factorizing the result sheds some light on what happened:
+
+```@repl fractran
+factorize(result) |> prettify_factorization
+```
+
+``128`` is ``2⁷``.  In other words, we started with ``2³⋅3⁴`` and obtained ``2⁷``.  It is simple to conclude that the program ``\frac{2}{3}`` works as an adder by writing the sum of the exponents in register `2` and register `3` to register `2`.
+
+When decomposing the FRACTRAN algorithm by hand, we can see that indeed, our supposition is true:
+
+```math
+\begin{alignat*}{7}
+& n₁   &&≔ && 648             &&= 2³⋅3⁴                                                                         \\[0.5em]
+& n₁⋅f &&= && 648⋅\frac{2}{3} &&= 2³⋅3⁴⋅\frac{2}{3} &&= 2⁴⋅3³  &&= 432              &&≕ n₂∈ℕ                    \\[1em]
+& n₂⋅f &&= && 432⋅\frac{2}{3} &&= 2⁴⋅3³⋅\frac{2}{3} &&= 2⁵⋅3²  &&= 288              &&≕ n₃∈ℕ                    \\[1em]
+& n₃⋅f &&= && 288⋅\frac{2}{3} &&= 2⁵⋅3²⋅\frac{2}{3} &&= 2⁶⋅3¹  &&= 192              &&≕ n₄∈ℕ                    \\[1em]
+& n₄⋅f &&= && 192⋅\frac{2}{3} &&= 2⁶⋅3¹⋅\frac{2}{3} &&= 2⁷⋅3⁰  &&= 128              &&≕ n₅∈ℕ                    \\[1em]
+& n₅⋅f &&= && 128⋅\frac{2}{3} &&= 2⁷⋅3⁰⋅\frac{2}{3} &&= 2⁸⋅3⁻¹ &&=  85.\overline{3} &&≕ n₆∉ℕ \quad\mathrm{stop}
+\end{alignat*}
+```
+
+We can futher corroborate the assumption that the FRACTRAN program performs addition by testing a matrix of numbers:
+
+```@repl fractran
+all(fractran(2^a * 3^b, 2//3) == 2^(a+b) for a in 1:10, b in 1:10)
+```
+
+Without explicitly mentioning it, we already switched to the second form of `fractran` here: You can pass the fractions either as `Tuple` or as `Vararg`s, depending on what fits your current code.
+
+As stated above, many FRACTRAN.jl functions have versions taking cache variables, here embodied by [`fractran!`](@ref).  Apart from the start number and fractions, you need to pass the caches to it:
+
+```@repl fractran
+using BenchmarkTools
+
+@btime fractran(2^5 * 3^3, 2//3);  # Without cache.
+@btime fractran!($FRACTRAN.factorizations, $FRACTRAN.primes, 2^5 * 3^3, 2//3);  # With cache.
+```
+
+As you can see, you can pass the module-level caches [`factorizations`](@ref) and [`primes`](@ref) to `fractran!`, and obtain some speedups.
+
+Finally, both `fractran` and `fractran!` take an optional keyword argument, `return_first`, which does not run the FRACTRAN algorithm to completion, but instead returns the *first* product that is a natural number, instead of the usual *last*.  This is (currently) required for infinitely running programs, like PRIMEGAME (see below), to be able to filter the result.
+
+!!! note
+    `return_first` may be changed/removed in the future (as breaking change).
