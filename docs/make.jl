@@ -2,7 +2,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-09
+# Last Modification: 2026-09-10
 # License: Public Domain
 
 using Documenter
@@ -23,6 +23,7 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Tutorial" => "tutorial.md",
         "API reference" => "reference.md",
     ],
 )
