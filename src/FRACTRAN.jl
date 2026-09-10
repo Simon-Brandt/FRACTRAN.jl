@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-09
+# Last Modification: 2026-09-10
 
 """
 Julia implementation of the esoteric programming language FRACTRAN.
@@ -377,9 +377,11 @@ function factorize!(
     new_n = _n
     factors = Int[]
     for divisor in primes
-        while new_n % divisor == 0
+        divisor > max_divisor && break
+
+        while (quot_rem = Base.divrem(new_n, divisor))[2] == 0  # Remainder.
             push!(factors, divisor)
-            new_n ÷= divisor
+            new_n = quot_rem[1]  # Quotient.
         end
     end
 
