@@ -74,3 +74,61 @@ generate_primes(1_000_000) |> last
 ```
 
 Thereby, we take advantage of the generated list being sorted.
+
+## Prime factorization
+
+More relevant for FRACTRAN than bare prime numbers is the actual prime factorization, which is implemented in [`factorize`](@ref).  This function takes a number ``n`` and returns its factorization as `DataStructures.Accumulator` object.  The `Accumulator` maps the prime factors to their counts:
+
+```@setup factorization
+using FRACTRAN
+```
+
+```@repl factorization
+factorize(60)
+```
+
+While this data structure is very handy for the FRACTRAN algorithm, it is not really legible.  Thus, if you want to visualize a factorization, you can use FRACTRAN.jl's [`prettify_factorization`](@ref) function, passing the `Accumulator` as argument:
+
+```@repl factorization
+factorize(60) |> prettify_factorization
+```
+
+`prettify_factorization` takes two optional Boolean keyword arguments, `explicit_one` and `verbose`.  The former prints the exponent of ``1`` explicitly, the latter expands the condensed exponent style by listing all prime factors individually:
+
+```@repl factorization
+factors = factorize(60);
+prettify_factorization(factors)
+prettify_factorization(factors, explicit_one=true)
+prettify_factorization(factors, verbose=true)
+```
+
+Internally, FRACTRAN.jl needs to factorize quite a few numbers.  Thus, for many functions, the module contains variants which take cache variables as arguments, such that they can return previously computed results immediately.  These functions have the same name as their non-mutating versions, but end in an exclamation mark, the typical sign for mutating functions.  If you need to compute many factorizations, you can leverage the cache for a sizeable speedup: All you need to do is create the cache variables and pass them as additional arguments to [`factorize!`](@ref):
+
+```@repl factorization
+using DataStructures: Accumulator
+
+factorizations = Dict{Int, Accumulator{Int, Int}}()
+primes = Int[]
+
+factorize!(factorizations, primes, 60)
+```
+
+The result is the same, but when we inspect the cache variables, we can see that they were populated with the needed intermediate results:
+
+```@repl factorization
+factorizations
+primes
+```
+
+To spare you from needing to memorize or look-up the precise data structures, FRACTRAN.jl comes with two `public` module-level cache variables, [`factorizations`](@ref) and [`primes`](@ref).  These are **persistent** over a Julia session, which may or may not be desirable.  When in doubt, you can copy the caches and use your copies, instead.  This is **required** for multi-threading, as writing to the caches is **not** thread-safe.
+
+Let's investigate the performance gain by employing the caches:
+
+```@repl factorization
+n = 2 * 3 * 5 * 7 * 11 * 13 * 17 * 19  # Large number.
+@time factorize(n);  # No cache.
+@time factorize!(FRACTRAN.factorizations, FRACTRAN.primes, n);  # Yet empty cache.
+@time factorize!(FRACTRAN.factorizations, FRACTRAN.primes, n);  # Now populated cache.
+```
+
+Granted, though the factorization runs a lot faster, on this order of magnitude of total runtime, we don't need to care about performance.  Later in this tutorial, however, we'll see how stored prime numbers can offer a lot of runtime gain.
