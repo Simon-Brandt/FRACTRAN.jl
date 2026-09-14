@@ -36,7 +36,13 @@ Pages = ["tutorial.md"]
 Depth = 2:3
 ```
 
-## Prime numbers
+## Prime factorization
+
+### Prime numbers
+
+```@setup primes
+using FRACTRAN
+```
 
 Before actually starting with programming in FRACTRAN, it may be helpful to have a look at the concept of prime numbers and prime factorization.  After all, that's what FRACTRAN is all about—it uses the factorization as registers for values.
 
@@ -56,10 +62,6 @@ generate_primes(100)
 
 Now, we can count how many prime numbers there are between ``1000`` and ``2000``:
 
-```@setup primes
-using FRACTRAN
-```
-
 ```@repl primes
 generate_primes(2000) .|> ≥(1000) |> count
 ```
@@ -78,13 +80,13 @@ generate_primes(1_000_000) |> last
 
 Thereby, we take advantage of the generated list being sorted.
 
-## Prime factorization
-
-More relevant for FRACTRAN than bare prime numbers is the actual prime factorization, which is implemented in [`factorize`](@ref).  This function takes a number ``n`` and returns its factorization as `DataStructures.Accumulator` object.  The `Accumulator` maps the prime factors to their counts:
+### Factorization
 
 ```@setup factorization
 using FRACTRAN
 ```
+
+More relevant for FRACTRAN than bare prime numbers is the actual prime factorization, which is implemented in [`factorize`](@ref).  This function takes a number ``n`` and returns its factorization as `DataStructures.Accumulator` object.  The `Accumulator` maps the prime factors to their counts:
 
 ```@repl factorization
 factorize(60)
@@ -138,13 +140,13 @@ Granted, though the factorization runs a lot faster, on this order of magnitude 
 
 ## FRACTRAN implementation
 
-Having discussed how factorizations work in FRACTRAN.jl, it is time to understand *why* they are useful: In FRACTRAN, a natural number ``n`` gets multiplied by a list of fractions ``f``, until the product ``n⋅fᵢ`` is again a natural number.  Multiplying by a fraction means to multiply by the numerator and divide by the denominator.  On the one hand, divisions are rather slow, and on the other, lead to fractional results, best as `Rational` type, worst as `FloatXY` type.  FRACTRAN.jl implements the algorithm in the [`fractran`](@ref) function, which, instead of multiplying by fractions, factorizes both the start number and each fraction's numerator and denominator *once*.  Then, the numerators are added and the denominators subtracted in *factorized* form, *i.e.*, on the exponents.  This keeps the core algorithm a pure `Int` algorithm and greatly simplifies judging whether the product is a natural number: If so, all exponents are positive; if not, then at least one is negative.  Now, the algorithm just keeps looping through the fractions, until none creates a natural number, anymore, which `fractran` then returns.
-
-A FRACTRAN program consists of a start number and a list of fractions, so you need to pass only them to `fractran`.  For the sake of the first example, we'll use a very simple one-fraction program:
-
 ```@setup fractran
 using FRACTRAN
 ```
+
+Having discussed how factorizations work in FRACTRAN.jl, it is time to understand *why* they are useful: In FRACTRAN, a natural number ``n`` gets multiplied by a list of fractions ``f``, until the product ``n⋅fᵢ`` is again a natural number.  Multiplying by a fraction means to multiply by the numerator and divide by the denominator.  On the one hand, divisions are rather slow, and on the other, lead to fractional results, best as `Rational` type, worst as `FloatXY` type.  FRACTRAN.jl implements the algorithm in the [`fractran`](@ref) function, which, instead of multiplying by fractions, factorizes both the start number and each fraction's numerator and denominator *once*.  Then, the numerators are added and the denominators subtracted in *factorized* form, *i.e.*, on the exponents.  This keeps the core algorithm a pure `Int` algorithm and greatly simplifies judging whether the product is a natural number: If so, all exponents are positive; if not, then at least one is negative.  Now, the algorithm just keeps looping through the fractions, until none creates a natural number, anymore, which `fractran` then returns.
+
+A FRACTRAN program consists of a start number and a list of fractions, so you need to pass only them to `fractran`.  For the sake of the first example, we'll use a very simple one-fraction program:
 
 ```@repl fractran
 n = 2^3 * 3^4
@@ -199,13 +201,15 @@ Finally, both `fractran` and `fractran!` take an optional keyword argument, `ret
 
 ## Example programs
 
-To simplify working with FRACTRAN, FRACTRAN.jl ships several `public` example programs, which you can inspect to see how the algorithm can be employed.  Basically, all these programs just call [`fractran`](@ref) on different sets of fractions, and compute the start integer from user-defined arguments.  *I.e.*, if you want to add ``4`` and ``3``, you just call `add(4, 3)`.  In other words, the fact that the addition is not just a `4 + 3`, but a whole FRACTRAN program, is completely hidden.
-
-There are four programs for simple arithmetics: [`add`](@ref), [`sub`](@ref), [`mul`](@ref), and [`divrem`](@ref).  They take two `Integer` arguments and return their sum, difference, product, or quotient and remainder.
+### FRACTRAN.jl example programs
 
 ```@setup example-programs
 using FRACTRAN
 ```
+
+To simplify working with FRACTRAN, FRACTRAN.jl ships several `public` example programs, which you can inspect to see how the algorithm can be employed.  Basically, all these programs just call [`fractran`](@ref) on different sets of fractions, and compute the start integer from user-defined arguments.  *I.e.*, if you want to add ``4`` and ``3``, you just call `add(4, 3)`.  In other words, the fact that the addition is not just a `4 + 3`, but a whole FRACTRAN program, is completely hidden.
+
+There are four programs for simple arithmetics: [`add`](@ref), [`sub`](@ref), [`mul`](@ref), and [`divrem`](@ref).  They take two `Integer` arguments and return their sum, difference, product, or quotient and remainder.
 
 ```@repl example-programs
 FRACTRAN.add(4, 3)
@@ -245,15 +249,15 @@ using BenchmarkTools
 
 Of course, you could also pass your own instances to the functions, instead of [`FRACTRAN.factorizations`](@ref) and [`FRACTRAN.primes`](@ref).
 
-## Your own program
-
-As last step, we will look at how you can use FRACTRAN.jl to implement your own FRACTRAN program using a slightly simplified, cache-less version of [`FRACTRAN.add`](@ref).
-
-Recall that a FRACTRAN program consists of nothing but a start number and a set of fractions.  The start number should have a prime factorization with the same registers as some fractions use (though they often employ more registers).  For addition, we need two numbers, which we pass as arguments to our addition function.  So our initial prototype may look like this:
+### Your own program
 
 ```@setup example
 using FRACTRAN
 ```
+
+As last step, we will look at how you can use FRACTRAN.jl to implement your own FRACTRAN program using a slightly simplified, cache-less version of [`FRACTRAN.add`](@ref).
+
+Recall that a FRACTRAN program consists of nothing but a start number and a set of fractions.  The start number should have a prime factorization with the same registers as some fractions use (though they often employ more registers).  For addition, we need two numbers, which we pass as arguments to our addition function.  So our initial prototype may look like this:
 
 ```@repl example
 function add(a, b)

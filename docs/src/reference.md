@@ -47,15 +47,6 @@ Order = [:module, :function, :constant]
 FRACTRAN
 ```
 
-## FRACTRAN algorithm
-
-The FRACTRAN algorithm is implemented in [`fractran`](@ref) and its in-place cache-mutating version [`fractran!`](@ref).  Both functions are `export`ed.
-
-```@docs
-fractran
-fractran!
-```
-
 ## Prime factorization
 
 To simplify the underlying computations, FRACTRAN.jl implements FRACTRAN using prime factorization by [`factorize`](@ref) (non-cache-mutating) and [`factorize!`](@ref) (cache-mutating).  Thereby, [`generate_primes`](@ref) generates the needed list of prime numbers.  Additionally, [`prettify_factorization`](@ref) can create a prettified string representation of a factorization for prettyprinting.  All functions are `export`ed for external usage by you.
@@ -65,6 +56,15 @@ generate_primes
 factorize
 factorize!
 prettify_factorization
+```
+
+## FRACTRAN algorithm
+
+The FRACTRAN algorithm is implemented in [`fractran`](@ref) and its in-place cache-mutating version [`fractran!`](@ref).  Both functions are `export`ed.
+
+```@docs
+fractran
+fractran!
 ```
 
 ## Example programs
