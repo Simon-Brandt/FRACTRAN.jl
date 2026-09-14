@@ -244,3 +244,144 @@ using BenchmarkTools
 ```
 
 Of course, you could also pass your own instances to the functions, instead of [`FRACTRAN.factorizations`](@ref) and [`FRACTRAN.primes`](@ref).
+
+## Your own program
+
+As last step, we will look at how you can use FRACTRAN.jl to implement your own FRACTRAN program using a slightly simplified, cache-less version of [`FRACTRAN.add`](@ref).
+
+Recall that a FRACTRAN program consists of nothing but a start number and a set of fractions.  The start number should have a prime factorization with the same registers as some fractions use (though they often employ more registers).  For addition, we need two numbers, which we pass as arguments to our addition function.  So our initial prototype may look like this:
+
+```@setup example
+using FRACTRAN
+```
+
+```@repl example
+function add(a, b)
+    n = 2^a * 3^b
+    fractions = (3//2,)
+end
+```
+
+We now need to pass the start number and fractions to the FRACTRAN implementation, *i.e.*, to [`fractran`](@ref).
+
+```@repl example
+function add(a, b)
+    n = 2^a * 3^b
+    fractions = (3//2,)
+    fractran(n, fractions)
+end
+
+add(4, 3)
+```
+
+This is already the correct result!  It's just not very user-friendly—we passed ``4`` and ``3`` and got ``2187`` as result, clearly not what a user likely expected of an addition program.
+
+Thus, we can [`factorize`](@ref) the result to decompose it into the individual registers:
+
+```@repl example
+function add(a, b)
+    n = 2^a * 3^b
+    fractions = (3//2,)
+    result = fractran(n, fractions)
+    factorize(result)
+end
+
+add(4, 3)
+```
+
+Obviously, the resulting `Accumulator` is even less readable (let alone usable in subsequent computations, where an `Integer` was expected).  So we take the `values` to read out the registers' exponents, and assert that the returned register is the `only` one:
+
+```@repl example
+function add(a, b)
+    n = 2^a * 3^b
+    fractions = (3//2,)
+    result = fractran(n, fractions)
+    factors = factorize(result)
+    only(values(factors))
+end
+
+add(4, 3)
+```
+
+This yields ``7``, as the user will have expected.  We can now add type assertions to `a` and `b` to make sure that only integral numbers are passed, maybe add a return type conversion (which is a no-op as already `fractran` defined it), and slightly reformat the computation into a pipeline:
+
+```@repl example
+function add(a::Integer, b::Integer)::Int
+    n = 2^a * 3^b
+    fractions = (3//2,)
+    return (
+        fractran(n, fractions)
+        |> factorize
+        |> values
+        |> only
+    )
+end
+
+add(4, 3)
+```
+
+This is now pretty much the exact implementation in FRACTRAN.jl.  The only difference is that in FRACTRAN.jl, the [`add`](@ref) function calls [`add!`](@ref) with newly created cache arguments, and the actual implementation logic resides in `add!`.  For completeness, here's the entire implementation:
+
+```julia
+using DataStructures: Accumulator
+
+function add(a::Integer, b::Integer)::Int
+    factorizations = Dict{Int, Accumulator{Int, Int}}()
+    primes = Int[]
+    return add!(factorizations, primes, a, b)
+end
+
+function add!(
+    factorizations::Dict{Int, Accumulator{Int, Int}},
+    primes::Vector{Int},
+    a::Integer,
+    b::Integer,
+)::Int
+    n = 2^a * 3^b
+    fractions = (3//2,)
+    return (
+        fractran!(factorizations, primes, n, fractions)
+        |> (x -> factorize!(factorizations, primes, x))
+        |> values
+        |> only
+    )
+end
+```
+
+In fact, the only thing that changed is that we now use the in-place mutating versions of FRACTRAN.jl's functions, and accordingly pass the caches.
+
+!!! note
+    Even though simple FRACTRAN programs are this easy to implement, handling peculiarities like negative results (as in [`FRACTRAN.sub`](@ref)) can be slightly more difficult, as you have to remember which registers the results may live in.  For the start, you may be better off disallowing certain types of input, like `a ≤ b` for subtractions.
+
+As an exercise, you may now try to implement `sub`!  After you're done, you can uncover the following section to see FRACTRAN.jl's solution.
+
+!!! details "FRACTRAN.jl implementation"
+    ```julia
+    function sub(a::Integer, b::Integer)::Int
+        factorizations = Dict{Int, Accumulator{Int, Int}}()
+        primes = Int[]
+        return sub!(factorizations, primes, a, b)
+    end
+
+    function sub!(
+        factorizations::Dict{Int, Accumulator{Int, Int}},
+        primes::Vector{Int},
+        a::Integer,
+        b::Integer,
+    )::Int
+        n = 2^a * 3^b
+        fractions = (1//6,)
+        result = fractran!(factorizations, primes, n, fractions)
+        factors = factorize!(factorizations, primes, result)
+
+        return if a == b
+            0            # Empty product, as 2^(a-b) = 2^0 = 1 ⟹ factorize(1) = ∅.
+        elseif a < b
+            -factors[3]  # Incomplete subtraction of `b`'s exponent from `a`'s.
+        else
+            factors[2]   # Complete subtraction.
+        end
+    end
+    ```
+
+You found a simpler solution that still passes the FRACTRAN.jl test suite?  Then feel free to share it in an [issue](https://github.com/Simon-Brandt/FRACTRAN.jl/issues/new)!  Likewise, if you have implemented other FRACTRAN programs, you can also open an issue and probably get it added to FRACTRAN.jl.
