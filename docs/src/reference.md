@@ -26,6 +26,9 @@ CurrentModule = FRACTRAN
 
 FRACTRAN.jl offers the below functions and cache variables within the `FRACTRAN` module namespace as public interface. All undocumented symbols are considered private implementation details and may change at any time.  Currently, there are very few of which, but should there be one that you'd like to become public, please [open an issue](https://github.com/Simon-Brandt/FRACTRAN.jl/issues/new) asking for it.
 
+!!! note
+    The docstrings for the non-mutating and mutating versions of a function are identical, but included in duplicated form for searchability.  So don't read both and try to find a difference…
+
 ## Table of contents
 
 ```@contents

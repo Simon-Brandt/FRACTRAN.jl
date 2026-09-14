@@ -80,6 +80,9 @@ generate_primes(1_000_000) |> last
 
 Thereby, we take advantage of the generated list being sorted.
 
+!!! note
+    While more an artifact of the implementation as trial division, this sorting is *guaranteed* for API stability.  In the very unlikely event that this will be changed, it will be a breaking change.
+
 ### Factorization
 
 ```@setup factorization
@@ -125,7 +128,7 @@ factorizations
 primes
 ```
 
-To spare you from needing to memorize or look-up the precise data structures, FRACTRAN.jl comes with two `public` module-level cache variables, [`factorizations`](@ref) and [`primes`](@ref).  These are **persistent** over a Julia session, which may or may not be desirable.  When in doubt, you can copy the caches and use your copies, instead.  This is **required** for multi-threading, as writing to the caches is **not** thread-safe.
+To spare you from needing to memorize or look-up the precise data structures, FRACTRAN.jl comes with two `public` module-level cache variables, [`factorizations`](@ref) and [`primes`](@ref).  These are *persistent* over a Julia session, which may or may not be desirable.  When in doubt, you can copy the caches and use your copies, instead.  This is *required* for multi-threading, as writing to the caches is *not* thread-safe.
 
 Let's investigate the performance gain by employing the caches:
 
@@ -144,7 +147,9 @@ Granted, though the factorization runs a lot faster, on this order of magnitude 
 using FRACTRAN
 ```
 
-Having discussed how factorizations work in FRACTRAN.jl, it is time to understand *why* they are useful: In FRACTRAN, a natural number ``n`` gets multiplied by a list of fractions ``f``, until the product ``n⋅fᵢ`` is again a natural number.  Multiplying by a fraction means to multiply by the numerator and divide by the denominator.  On the one hand, divisions are rather slow, and on the other, lead to fractional results, best as `Rational` type, worst as `FloatXY` type.  FRACTRAN.jl implements the algorithm in the [`fractran`](@ref) function, which, instead of multiplying by fractions, factorizes both the start number and each fraction's numerator and denominator *once*.  Then, the numerators are added and the denominators subtracted in *factorized* form, *i.e.*, on the exponents.  This keeps the core algorithm a pure `Int` algorithm and greatly simplifies judging whether the product is a natural number: If so, all exponents are positive; if not, then at least one is negative.  Now, the algorithm just keeps looping through the fractions, until none creates a natural number, anymore, which `fractran` then returns.
+Having discussed how factorizations work in FRACTRAN.jl, it is time to understand *why* they are useful: In FRACTRAN, a natural number ``n`` gets multiplied by a list of fractions ``f``, until the product ``n⋅fᵢ`` is again a natural number.  Multiplying by a fraction means to multiply by the numerator and divide by the denominator.  On the one hand, divisions are rather slow, and on the other, lead to fractional results, best as `Rational` type, worst as `FloatXY` type.  While this could be circumvented, the main issue is that `Integer`s can overflow, and FRACTRAN can quickly run into extremely large numbers.
+
+FRACTRAN.jl implements the algorithm in the [`fractran`](@ref) function, which, instead of multiplying by fractions, factorizes both the start number and each fraction's numerator and denominator *once*.  Then, the numerators are added and the denominators subtracted in *factorized* form, *i.e.*, on the exponents.  This keeps the core algorithm a pure `Int` algorithm and greatly simplifies judging whether the product is a natural number: If so, all exponents are positive; if not, then at least one is negative.  Now, the algorithm just keeps looping through the fractions, until none creates a natural number, anymore, which `fractran` then returns.
 
 A FRACTRAN program consists of a start number and a list of fractions, so you need to pass only them to `fractran`.  For the sake of the first example, we'll use a very simple one-fraction program:
 
@@ -233,10 +238,10 @@ The fifth example program, called "PRIMEGAME", is also the most interesting: It 
 FRACTRAN.primegame()
 ```
 
-PRIMEGAME is an example of an infinite FRACTRAN algorithm.  Thus, FRACTRAN.jl implements it using the `return_first` argument to `fractran`, and applies a filter on the results.  Additionally, `primegame` takes an optional argument, `max_iterations`, to specify the number of times `fractran` is run.
+PRIMEGAME is an example of an infinite FRACTRAN program.  Thus, FRACTRAN.jl implements it using the `return_first` argument to `fractran`, and applies a filter on the results.  Additionally, `primegame` takes an optional argument, `max_iterations`, to specify the number of times `fractran` is run.
 
 !!! note
-    The argument does *not* mean to generate the first ``n`` prime numbers, or all up to ``n``.  Since the algorithm is extremely slow, even a very small ``n`` would take an extremely long time.  The default value, ``100``, creates the first *two* numbers; ``1000`` just *four*.  You can look up the needed iterations for the ``n``ᵗʰ prime number in the [OEIS](https://en.wikipedia.org/wiki/On-Line_Encyclopedia_of_Integer_Sequences), as sequence [A007547](https://oeis.org/A007547).
+    The argument does *not* mean to generate the first ``n`` prime numbers, or all prime numbers smaller than, and including, ``n``.  Since the algorithm is extremely slow, even a very small ``n`` would take an extremely long time.  The default value for `max_iterations`, ``100``, creates the first *two* numbers (``n = 2``); ``1000`` just *four* (``n = 4``).  You can look up the needed iterations for the ``n``ᵗʰ prime number in the [OEIS](https://en.wikipedia.org/wiki/On-Line_Encyclopedia_of_Integer_Sequences), as sequence [A007547](https://oeis.org/A007547).
 
 Like `fractran`, all five example programs have alternate forms to take cache arguments, *viz.*, [`add!`](@ref), [`sub!`](@ref), [`mul!`](@ref), [`divrem!`](@ref), and [`primegame!`](@ref).  These can be used to considerably speed up multi-fraction and repeatedly executed programs, as we can see with PRIMEGAME:
 
@@ -293,7 +298,7 @@ end
 add(4, 3)
 ```
 
-Obviously, the resulting `Accumulator` is even less readable (let alone usable in subsequent computations, where an `Integer` was expected).  So we take the `values` to read out the registers' exponents, and assert that the returned register is the `only` one:
+Obviously, the resulting `Accumulator` is even less readable (let alone usable in subsequent computations, where an `Integer` was expected).  So we take the `values` to read out the registers' exponents, and assert that the returned register is the `only` one (we could also directly address the correct register *via* `factors[3]`):
 
 ```@repl example
 function add(a, b)
@@ -324,7 +329,9 @@ end
 add(4, 3)
 ```
 
-This is now pretty much the exact implementation in FRACTRAN.jl.  The only difference is that in FRACTRAN.jl, the [`add`](@ref) function calls [`add!`](@ref) with newly created cache arguments, and the actual implementation logic resides in `add!`.  For completeness, here's the entire implementation:
+This is now pretty much the exact implementation in FRACTRAN.jl.  The only difference is that in FRACTRAN.jl, the [`add`](@ref) function calls [`add!`](@ref) with newly created cache arguments, and the actual implementation logic resides in `add!`.
+
+For completeness, here's the entire implementation:
 
 ```julia
 using DataStructures: Accumulator
