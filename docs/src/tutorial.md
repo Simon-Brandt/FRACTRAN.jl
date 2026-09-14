@@ -196,3 +196,51 @@ Finally, both `fractran` and `fractran!` take an optional keyword argument, `ret
 
 !!! note
     `return_first` may be changed/removed in the future (as breaking change).
+
+## Example programs
+
+To simplify working with FRACTRAN, FRACTRAN.jl ships several `public` example programs, which you can inspect to see how the algorithm can be employed.  Basically, all these programs just call [`fractran`](@ref) on different sets of fractions, and compute the start integer from user-defined arguments.  *I.e.*, if you want to add ``4`` and ``3``, you just call `add(4, 3)`.  In other words, the fact that the addition is not just a `4 + 3`, but a whole FRACTRAN program, is completely hidden.
+
+There are four programs for simple arithmetics: [`add`](@ref), [`sub`](@ref), [`mul`](@ref), and [`divrem`](@ref).  They take two `Integer` arguments and return their sum, difference, product, or quotient and remainder.
+
+```@setup example-programs
+using FRACTRAN
+```
+
+```@repl example-programs
+FRACTRAN.add(4, 3)
+FRACTRAN.sub(4, 3)
+FRACTRAN.mul(4, 3)
+FRACTRAN.divrem(4, 3)
+```
+
+We can make sure that the programs work correctly by comparing their results to the built-in operators:
+
+```@repl example-programs
+FRACTRAN.add(4, 3) == 4 + 3
+FRACTRAN.sub(4, 3) == 4 - 3
+FRACTRAN.mul(4, 3) == 4 * 3
+FRACTRAN.divrem(4, 3) == Base.divrem(4, 3) == (4 ÷ 3, 4 % 3)
+```
+
+The fifth example program, called "PRIMEGAME", is also the most interesting: It (very slowly) creates prime numbers, as you can see in its [`primegame`](@ref) implementation:
+
+```@repl example-programs
+FRACTRAN.primegame()
+```
+
+PRIMEGAME is an example of an infinite FRACTRAN algorithm.  Thus, FRACTRAN.jl implements it using the `return_first` argument to `fractran`, and applies a filter on the results.  Additionally, `primegame` takes an optional argument, `max_iterations`, to specify the number of times `fractran` is run.
+
+!!! note
+    The argument does *not* mean to generate the first ``n`` prime numbers, or all up to ``n``.  Since the algorithm is extremely slow, even a very small ``n`` would take an extremely long time.  The default value, ``100``, creates the first *two* numbers; ``1000`` just *four*.  You can look up the needed iterations for the ``n``ᵗʰ prime number in the [OEIS](https://en.wikipedia.org/wiki/On-Line_Encyclopedia_of_Integer_Sequences), as sequence [A007547](https://oeis.org/A007547).
+
+Like `fractran`, all five example programs have alternate forms to take cache arguments, *viz.*, [`add!`](@ref), [`sub!`](@ref), [`mul!`](@ref), [`divrem!`](@ref), and [`primegame!`](@ref).  These can be used to considerably speed up multi-fraction and repeatedly executed programs, as we can see with PRIMEGAME:
+
+```@repl example-programs
+using BenchmarkTools
+
+@btime FRACTRAN.primegame(1000);  # Without cache.
+@btime FRACTRAN.primegame!($FRACTRAN.factorizations, $FRACTRAN.primes, 1000);  # With cache.
+```
+
+Of course, you could also pass your own instances to the functions, instead of [`FRACTRAN.factorizations`](@ref) and [`FRACTRAN.primes`](@ref).
