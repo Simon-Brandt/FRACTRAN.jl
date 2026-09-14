@@ -111,7 +111,7 @@ FRACTRAN.primegame!
 
 ## Cache variables
 
-The two variables [`factorizations`](@ref) and [`primes`](@ref) serve as module-level caches for repeated calls to [`fractran`](@ref) and are declared `public`.
+The two variables [`FRACTRAN.factorizations`](@ref) and [`FRACTRAN.primes`](@ref) serve as module-level caches for repeated calls to [`fractran`](@ref) and are declared `public`.
 
 ```@docs
 factorizations
