@@ -146,9 +146,9 @@ julia> generate_primes(2, 10)
 
 julia> factorize(120)
 DataStructures.Accumulator{Int64, Int64} with 3 entries:
-  5 => 1
-  2 => 3
   3 => 1
+  2 => 3
+  5 => 1
 
 julia> prettify_factorization(ans)
 "2³⋅3⋅5"
@@ -323,9 +323,9 @@ accelerated computations, see the Extended help.
 ```jldoctest
 julia> factorize(120)  # Composite number.
 DataStructures.Accumulator{Int64, Int64} with 3 entries:
-  5 => 1
-  2 => 3
   3 => 1
+  2 => 3
+  5 => 1
 
 julia> factorize(7)    # Prime number.
 DataStructures.Accumulator{Int64, Int64} with 1 entry:
@@ -418,9 +418,9 @@ no effect.
 ```jldoctest
 julia> factors = factorize(120)
 DataStructures.Accumulator{Int64, Int64} with 3 entries:
-  5 => 1
-  2 => 3
   3 => 1
+  2 => 3
+  5 => 1
 
 julia> prettify_factorization(factors)
 "2³⋅3⋅5"

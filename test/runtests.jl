@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-08
+# Last Modification: 2026-09-15
 
 using Markdown: Markdown, @md_str
 using Test: @test, @testset, @test_throws
@@ -500,11 +500,16 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
         end
     end
 
-    # Run the doctests.
-    Documenter.doctest(
-        FRACTRAN,
-        testset="Doctests (Documenter.jl)",
-        manual=false,
-        meta = Dict(:DocTestSetup => :(using FRACTRAN)),
-    )
+    # Run the doctests, in Julia 1 versions starting from Julia 1.13, as
+    # the hash algorithm has changed, there, and some doctests' results
+    # rely on the ordering of `Dict`s (the data structure underlying
+    # `DataStructures.Accumulator`).
+    if v"1.13" <= VERSION < v"2-"
+        Documenter.doctest(
+            FRACTRAN,
+            testset="Doctests (Documenter.jl)",
+            manual=false,
+            meta = Dict(:DocTestSetup => :(using FRACTRAN)),
+        )
+    end
 end
