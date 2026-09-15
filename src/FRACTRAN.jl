@@ -648,7 +648,9 @@ end
         b::Integer,
     )::Int
 
-Add `b` to `a` using the following FRACTRAN program:
+Add `b` to `a` using a FRACTRAN program.
+
+The program is:
 
 - Start value:  `n = 2^a * 3^b`
 - Fractions:    `3//2`
@@ -708,7 +710,9 @@ end
         b::Integer,
     )::Int
 
-Subtract `b` from `a` using the following FRACTRAN program:
+Subtract `b` from `a` using a FRACTRAN program.
+
+The program is:
 
 - Start value:  `n = 2^a * 3^b`
 - Fractions:    `1//6`
@@ -772,7 +776,9 @@ end
         b::Integer,
     )::Int
 
-Multiply `a` by `b` using the following FRACTRAN program:
+Multiply `a` by `b` using a FRACTRAN program.
+
+The program is:
 
 - Start value:  `n = 2^a * 3^b`
 - Fractions:    `455//33`, `11//13`, `1//11`, `3//7`, `11//2`, `1//3`
@@ -832,8 +838,9 @@ end
         b::Integer,
     )::Tuple{Int, Int}
 
-Divide `a` by `b` (as Euclidian division) using the following FRACTRAN
-program:
+Divide `a` by `b` (as Euclidian division) using a FRACTRAN program.
+
+The program is:
 
 - Start value:  `2^a * 3^b * 11`
 - Fractions:    `91//66`, `11//13`, `1//33`, `85//11`, `57//119`,
@@ -903,9 +910,13 @@ end
         max_iterations::Integer = 100,
     )::Vector{Int}
 
-Find all prime numbers that are reachable by running `max_iterations`
-(default: `100`) iterations of the algorithm using the following
-FRACTRAN program, called "PRIMEGAME":
+Find prime numbers using the FRACTRAN program "PRIMEGAME".
+
+The prime numbers returned are all that are reachable by running
+`max_iterations` (default: `100`) iterations of the FRACTRAN algorithm,
+returned in sorted order, starting with `2`.
+
+The program is:
 
 - Start value:  `n = 2` (in PRIMEGAME, more generally, `n = 2^a * 7^b`)
 - Fractions:    `17//91`, `78//85`, `19//51`, `23//38`, `29//33`,
@@ -993,6 +1004,8 @@ function primegame!(
 end
 
 """
+    factorizations::Dict{Int, Accumulator{Int, Int}}
+
 Module-level cache for yet computed factorizations.
 
 # Extended help
@@ -1003,6 +1016,8 @@ factorizations::Dict{Int, Accumulator{Int, Int}} =
     Dict{Int, Accumulator{Int, Int}}()
 
 """
+    primes::Vector{Int}
+
 Module-level cache for yet computed prime numbers.
 
 # Extended help
