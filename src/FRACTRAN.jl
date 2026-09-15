@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-10
+# Last Modification: 2026-09-15
 
 """
 Julia implementation of the esoteric programming language FRACTRAN.
@@ -58,19 +58,20 @@ the [Wikipedia entry](https://en.wikipedia.org/wiki/FRACTRAN), or the
 FRACTRAN.jl provides both an implementation of the algorithm itself, as
 well as several example FRACTRAN programs.  Additionally, the module
 contains a prime number generator and a factorization function for
-factorizating the numbers for FRACTRAN.
+factorizing the numbers for FRACTRAN.
 
 The actual FRACTRAN implementation lies within the [`fractran`](@ref)
 function.  For using FRACTRAN, you only need to pass the start number
-and fractions to `fractran`, and get the algorithm's result back as
-integer.
+and fractions to [`fractran`](@ref), and get the algorithm's result back
+as integer.
 
 To show the possibilities of FRACTRAN (it's Turing-complete, after all),
 FRACTRAN.jl provides some (`public`, not `export`ed) example FRACTRAN
-functions: [`add`](@ref), [`sub`](@ref), [`mul`](@ref), and
-[`divrem`](@ref) for the respective arithmetic operations.  A fifth
-function, [`primegame`](@ref), implements the famous PRIMEGAME program,
-which generates prime numbers.  You may also want to have a look at the
+functions: [`FRACTRAN.add`](@ref), [`FRACTRAN.sub`](@ref),
+[`FRACTRAN.mul`](@ref), and [`FRACTRAN.divrem`](@ref) for the respective
+arithmetic operations.  A fifth function, [`FRACTRAN.primegame`](@ref),
+implements the famous PRIMEGAME program, which generates prime numbers.
+You may also want to have a look at the
 [source code](https://github.com/Simon-Brandt/FRACTRAN.jl/blob/main/src/FRACTRAN.jl)
 to see how to programmatically use FRACTRAN in Julia.
 
@@ -79,20 +80,20 @@ function for prime factorization, [`factorize`](@ref), which uses
 [`generate_primes`](@ref) to generate a list of prime numbers.
 
 !!! note
-    Though you can use `generate_primes` and `factorize` for other
-    purposes, the implementation is (intentionally) not optimized for
-    performance.
+    Though you can use [`generate_primes`](@ref) and [`factorize`](@ref)
+    for other purposes, the implementation is (intentionally) not
+    optimized for performance.
 
 !!! tip
     You may visualize the factorization with
     [`prettify_factorization`](@ref).
 
-To accelerate repeated `fractran` calls, `factorize`, `fractran`, and
-all example programs have a second form with exclamation mark (like
-[`factorize!`](@ref), [`fractran!`](@ref) etc.) that take cache
-arguments for in-place mutation.  FRACTRAN.jl provides two module-level
-caches for this, [`factorizations`](@ref) and [`primes`](@ref), which
-you can use alongside your own objects.
+To accelerate repeated [`fractran`](@ref) calls, [`factorize`](@ref),
+[`fractran`](@ref), and all example programs have a second form with
+exclamation mark (like [`factorize!`](@ref), [`fractran!`](@ref) *etc.*)
+that take cache arguments for in-place mutation.  FRACTRAN.jl provides
+two module-level caches for this, [`FRACTRAN.factorizations`](@ref) and
+[`FRACTRAN.primes`](@ref), which you can use alongside your own objects.
 
 ## Examples
 
@@ -175,14 +176,16 @@ function Base.showerror(io::IO, err::_MDError)
 end
 
 function _add_docstring_note_function(function_name::AbstractString)::String
+    # Add a note to a function docstring regarding the usage of cache
+    # arguments.
     note = """
     Unlike the non-mutating [`$(function_name)`](@ref),
     [`$(function_name)!`](@ref) takes cache arguments of pre-computed
     `factorizations` and `primes` and mutates them **in-place**, thus
     updating the cache for future usage.  When needing to call
-    `$(function_name)` repeatedly, it is thus more efficient to call
-    `$(function_name)!` instead and pass shared `factorizations` and
-    `primes`.
+    [`$(function_name)`](@ref) repeatedly, it is thus more efficient to
+    call [`$(function_name)!`](@ref) instead and pass shared
+    `factorizations` and `primes` arguments.
 
     To this end, FRACTRAN.jl provides two module-level cache variables,
     [`FRACTRAN.factorizations`](@ref) and [`FRACTRAN.primes`](@ref),
@@ -195,6 +198,8 @@ function _add_docstring_note_function(function_name::AbstractString)::String
 end
 
 function _add_docstring_note_variable()::String
+    # Add a note to a cache variable docstring regarding its usage in
+    # in-place mutating functions.
     note = """
     This optional cache can be useful to accelerate repeated
     [`fractran`](@ref) calls when using FRACTRAN.jl's mutating
@@ -497,7 +502,7 @@ end
 
 Run the FRACTRAN algorithm on the start value `n` using the `fractions`.
 
-*Iff* `return_first` is `true` (default: `false`), return the first
+If `return_first` is `true` (default: `false`), return the first
 obtained integer.  Else, run the algorithm until no fraction yields an
 integer and return the last integer.  This is the FRACTRAN algorithm's
 actual result—`return_first` is needed by some specific programs like
@@ -840,7 +845,7 @@ The second form takes cache arguments for accelerated computations, see
 the Extended help.
 
 !!! note
-    `divrem(a, b)` directly returns `(q, r)`, i.e., `(a ÷ b, a % b)`,
+    `divrem(a, b)` directly returns `(q, r)`, *i.e.*, `(a ÷ b, a % b)`,
     not `5^q * 7^r`.
 
 # Examples
@@ -914,9 +919,12 @@ the Extended help.
 
 !!! note
     `primegame(n)` directly returns all prime numbers up to, and
-    including, `c`, not `2^c * 7^d`.  Also note that the PRIMEGAME
-    algorithm is very inefficient and may take a very long time even for
-    small prime numbers.
+    including, `c`, not `2^c * 7^d`.
+
+!!! warning
+    The PRIMEGAME algorithm is very inefficient and may take a very long
+    time even for small prime numbers (*e.g.* ``1000`` iterations find
+    just *four* prime numbers).
 
 # Examples
 
