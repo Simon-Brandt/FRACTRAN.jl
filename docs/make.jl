@@ -2,10 +2,11 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-10
+# Last Modification: 2026-09-15
 # License: Public Domain
 
 using Documenter
+using DocumenterCodeBlocks
 
 using FRACTRAN
 
@@ -26,6 +27,7 @@ makedocs(;
         "Tutorial" => "tutorial.md",
         "API reference" => "reference.md",
     ],
+    plugins=[CodeBlocks()],
 )
 
 deploydocs(;
