@@ -2,7 +2,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-15
+# Last Modification: 2026-09-16
 # License: Public Domain
 
 using Documenter
@@ -20,7 +20,6 @@ makedocs(;
         canonical="https://Simon-Brandt.github.io/FRACTRAN.jl",
         edit_link="main",
         assets=String[],
-        prettyurls=false,  # TODO: Remove.
     ),
     pages=[
         "Home" => "index.md",
