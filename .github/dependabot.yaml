@@ -1,0 +1,26 @@
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "Bumped GitHub actions dependencies"
+  - package-ecosystem: "julia"
+    directories:
+      - "/"
+      - "/docs"
+      - "/test"
+    schedule:
+      interval: "weekly"
+    groups:
+      julia-dependencies:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "Bumped Julia dependencies"
