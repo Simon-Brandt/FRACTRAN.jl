@@ -592,6 +592,19 @@ function fractran!(
     fractions::Rational{<:Integer}...;
     return_first::Bool = false,
 )::Int
+    # Check that `n` and all `fractions`' numerators and denominators
+    # are positive, or throw an error.
+    n >= 1 || throw(_MDError(md"`n` must be `≥ 1`."))
+
+    if any(
+        numerator(fraction) < 1 || denominator(fraction) < 1
+        for fraction in fractions
+    )
+        throw(_MDError(
+            md"All `fractions`' `numerator`s and `denominator`s must be `≥ 1`."
+        ))
+    end
+
     # Factorize `n` and each `fraction` for more efficient operation on
     # the implicitly represented powers with a much lower risk of
     # integer overflow.

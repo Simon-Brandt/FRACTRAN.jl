@@ -466,6 +466,30 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
             end
         end
 
+        # Test invalid start numbers and fractions.  Note that Julia
+        # converts `Rational`s where both the numerator and denominator
+        # are negative to their positive counterparts, so testing them
+        # is not necessary and does not throw.  Also note that
+        # `Rational`s with ``0`` as denominator are allowed and can thus
+        # be tested.
+        @test_throws FRACTRAN._MDError fractran(-1, 1//2)
+        @test_throws _to_str(md"`n` must be `≥ 1`.") fractran(-1, 1//2)
+
+        @test_throws FRACTRAN._MDError fractran(0, 1//2)
+        @test_throws _to_str(md"`n` must be `≥ 1`.") fractran(0, 1//2)
+
+        @test_throws FRACTRAN._MDError fractran(1, -1//2)
+        @test_throws _to_str(md"All `fractions`' `numerator`s and `denominator`s must be `≥ 1`.") fractran(1, -1//2)
+
+        @test_throws FRACTRAN._MDError fractran(1, 0//2)
+        @test_throws _to_str(md"All `fractions`' `numerator`s and `denominator`s must be `≥ 1`.") fractran(1, 0//2)
+
+        @test_throws FRACTRAN._MDError fractran(1, 1//-2)
+        @test_throws _to_str(md"All `fractions`' `numerator`s and `denominator`s must be `≥ 1`.") fractran(1, 1//-2)
+
+        @test_throws FRACTRAN._MDError fractran(1, 1//0)
+        @test_throws _to_str(md"All `fractions`' `numerator`s and `denominator`s must be `≥ 1`.") fractran(1, 1//0)
+
         # Test the addition program.
         @testset "Addition program" begin
             @testset "Addition program with input type $T" for T in TYPES, a in 1:10, b in 1:10
