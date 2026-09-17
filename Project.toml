@@ -3,6 +3,9 @@ uuid = "b3265269-ac8c-4b4b-a0de-8f2880b225aa"
 version = "0.1.0"
 authors = ["Simon Brandt <simon.brandt@uni-greifswald.de> and contributors"]
 
+[workspace]
+projects = ["docs", "test"]
+
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
@@ -11,6 +14,3 @@ Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
 DataStructures = "0.19.6"
 Markdown = "1.11.0"
 julia = "1.12"
-
-[workspace]
-projects = ["docs", "test"]
