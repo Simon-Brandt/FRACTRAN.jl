@@ -9,8 +9,6 @@ updates:
       github-actions:
         patterns:
           - "*"
-    commit-message:
-      prefix: "Bumped GitHub actions dependencies"
   - package-ecosystem: "julia"
     directories:
       - "/"
@@ -22,5 +20,3 @@ updates:
       julia-dependencies:
         patterns:
           - "*"
-    commit-message:
-      prefix: "Bumped Julia dependencies"
