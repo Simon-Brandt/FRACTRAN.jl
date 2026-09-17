@@ -175,10 +175,34 @@ function Base.showerror(io::IO, err::_MDError)
     show(io, MIME"text/plain"(), err.msg)  # Adds two spaces before `msg`.
 end
 
-function _add_docstring_note_function(function_name::AbstractString)::String
-    # Add a note to a function docstring regarding the usage of cache
-    # arguments.
+function _add_docstring_thread_safety_warning()::String
+    # Add a warning to a function or cache variable docstring concerning
+    # thread safety.
     note = """
+    !!! warning "Warning: Thread safety"
+        Using the module-level cache variables is **not** thread-safe.
+    """
+    return note
+end
+
+function _add_docstring_cache_corruption_warning()::String
+    # Add a warning to a cache variable docstring concerning cache
+    # corruption.
+    note = """
+    !!! danger "Danger: Cache corruption"
+        Do **not** populate the cache yourself, as this may lead to
+        cache corruption!  Only let the FRACTRAN.jl functions handle the
+        cache and add elements.
+    """
+    return note
+end
+
+function _add_docstring_extended_help_functions(function_name::String)::String
+    # Add the Extended help section to a function docstring with the
+    # usage of cache arguments.
+    note = """
+    # Extended help
+
     Unlike the non-mutating [`$(function_name)`](@ref),
     [`$(function_name)!`](@ref) takes cache arguments of pre-computed
     `factorizations` and `primes` and mutates them **in-place**, thus
@@ -190,17 +214,16 @@ function _add_docstring_note_function(function_name::AbstractString)::String
     To this end, FRACTRAN.jl provides two module-level cache variables,
     [`FRACTRAN.factorizations`](@ref) and [`FRACTRAN.primes`](@ref),
     which you can use as storage targets.
-
-    !!! warning
-        Using the module-level cache variables is **not** thread-safe.
     """
     return note
 end
 
-function _add_docstring_note_variable()::String
-    # Add a note to a cache variable docstring regarding its usage in
-    # in-place mutating functions.
+function _add_docstring_extended_help_caches()::String
+    # Add the Extended help section to a cache variable docstring
+    # with the cache's usage in in-place mutating functions.
     note = """
+    # Extended help
+
     This optional cache can be useful to accelerate repeated
     [`fractran`](@ref) calls when using FRACTRAN.jl's mutating
     functions.
@@ -318,6 +341,8 @@ The factorization yields an `Accumulator` mapping the factors' bases to
 their exponents (counts).  The second form takes cache arguments for
 accelerated computations, see the Extended help.
 
+$(_add_docstring_thread_safety_warning())
+
 # Examples
 
 ```jldoctest
@@ -335,9 +360,7 @@ julia> factorize(1)    # Empty product.
 Accumulator{Int64,Int64}()
 ```
 
-# Extended help
-
-$(_add_docstring_note_function("factorize"))
+$(_add_docstring_extended_help_functions("factorize"))
 """
 factorize, factorize!
 
@@ -511,6 +534,8 @@ PRIMEGAME that filter the FRACTRAN integers.
 The third and fourth forms take cache arguments for accelerated
 computations, see the Extended help.
 
+$(_add_docstring_thread_safety_warning())
+
 # Examples
 
 ## Simple addition program
@@ -549,9 +574,7 @@ DataStructures.Accumulator{Int64, Int64} with 1 entry:
   2 => 1
 ```
 
-# Extended help
-
-$(_add_docstring_note_function("fractran"))
+$(_add_docstring_extended_help_functions("fractran"))
 """
 fractran, fractran!
 
@@ -675,6 +698,8 @@ the Extended help.
 !!! note
     `add(a, b)` directly returns `a + b`, not `3^(a+b)`.
 
+$(_add_docstring_thread_safety_warning())
+
 # Examples
 
 ```jldoctest
@@ -685,9 +710,7 @@ julia> FRACTRAN.add(1, 2)
 3
 ```
 
-# Extended help
-
-$(_add_docstring_note_function("add"))
+$(_add_docstring_extended_help_functions("add"))
 """
 add, add!
 
@@ -742,6 +765,8 @@ the Extended help.
 !!! note
     `sub(a, b)` directly returns `a - b`, not `2^(a-b)`.
 
+$(_add_docstring_thread_safety_warning())
+
 # Examples
 
 ```jldoctest
@@ -752,9 +777,7 @@ julia> FRACTRAN.sub(1, 2)
 -1
 ```
 
-# Extended help
-
-$(_add_docstring_note_function("sub"))
+$(_add_docstring_extended_help_functions("sub"))
 """
 sub, sub!
 
@@ -813,6 +836,8 @@ the Extended help.
 !!! note
     `mul(a, b)` directly returns `a * b`, not `5^(a*b)`.
 
+$(_add_docstring_thread_safety_warning())
+
 # Examples
 
 ```jldoctest
@@ -823,9 +848,7 @@ julia> FRACTRAN.mul(1, 2)
 2
 ```
 
-# Extended help
-
-$(_add_docstring_note_function("mul"))
+$(_add_docstring_extended_help_functions("mul"))
 """
 mul, mul!
 
@@ -883,6 +906,8 @@ the Extended help.
     `divrem(a, b)` directly returns `(q, r)`, *i.e.*, `(a ÷ b, a % b)`,
     not `5^q * 7^r`.
 
+$(_add_docstring_thread_safety_warning())
+
 # Examples
 
 ```jldoctest
@@ -896,9 +921,7 @@ julia> FRACTRAN.divrem(2, 1)
 (2, 0)
 ```
 
-# Extended help
-
-$(_add_docstring_note_function("divrem"))
+$(_add_docstring_extended_help_functions("divrem"))
 """
 divrem!
 
@@ -970,6 +993,8 @@ the Extended help.
     time even for small prime numbers (*e.g.* ``1000`` iterations find
     just *four* prime numbers).
 
+$(_add_docstring_thread_safety_warning())
+
 # Examples
 
 ```jldoctest
@@ -985,9 +1010,7 @@ julia> FRACTRAN.primegame()     # Usage of default value 100.
  3
 ```
 
-# Extended help
-
-$(_add_docstring_note_function("primegame"))
+$(_add_docstring_extended_help_functions("primegame"))
 """
 primegame, primegame!
 
@@ -1046,14 +1069,9 @@ end
 
 Module-level cache for yet computed factorizations.
 
-!!! danger "Cache corruption"
-    Do **not** populate the cache yourself, as this may lead to cache
-    corruption!  Only let the FRACTRAN.jl functions handle the cache and
-    add elements.
+$(_add_docstring_cache_corruption_warning())
 
-# Extended help
-
-$(_add_docstring_note_variable())
+$(_add_docstring_extended_help_caches())
 """
 factorizations::Dict{Int, Accumulator{Int, Int}} =
     Dict{Int, Accumulator{Int, Int}}()
@@ -1063,14 +1081,9 @@ factorizations::Dict{Int, Accumulator{Int, Int}} =
 
 Module-level cache for yet computed prime numbers.
 
-!!! danger "Cache corruption"
-    Do **not** populate the cache yourself, as this may lead to cache
-    corruption!  Only let the FRACTRAN.jl functions handle the cache and
-    add elements.
+$(_add_docstring_cache_corruption_warning())
 
-# Extended help
-
-$(_add_docstring_note_variable())
+$(_add_docstring_extended_help_caches())
 """
 primes::Vector{Int} = Int[]
 
