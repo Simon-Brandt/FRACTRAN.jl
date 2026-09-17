@@ -73,7 +73,7 @@ julia> fractran(n, fractions) |> factorize |> prettify_factorization
 "2⁷"
 ```
 
-What does the result mean? We passed $2³⋅3⁴$ to the FRACTRAN program $\frac{2}{3}$ and obtained $2⁷$—suggesting the program works as an adder of the exponents.  The [tutorial](https://Simon-Brandt.github.io/FRACTRAN.jl/stable/tutorial/#FRACTRAN-implementation) contains the explanation for this.
+What does the result mean? We passed $2^3 \cdot 3^4$ to the FRACTRAN program $\frac{2}{3}$ and obtained $2^7$—suggesting the program works as an adder of the exponents.  The [tutorial](https://Simon-Brandt.github.io/FRACTRAN.jl/stable/tutorial/#FRACTRAN-implementation) contains the explanation for this.
 
 For any "serious" FRACTRAN.jl applications, you should read the extensive docstrings or consult the [documentation](https://Simon-Brandt.github.io/FRACTRAN.jl/stable/), which contains more examples of all functions.  But note that FRACTRAN is slow, and thus not suitable for production environments.
 
