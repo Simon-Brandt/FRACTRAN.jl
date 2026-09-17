@@ -1046,6 +1046,11 @@ end
 
 Module-level cache for yet computed factorizations.
 
+!!! danger "Cache corruption"
+    Do **not** populate the cache yourself, as this may lead to cache
+    corruption!  Only let the FRACTRAN.jl functions handle the cache and
+    add elements.
+
 # Extended help
 
 $(_add_docstring_note_variable())
@@ -1057,6 +1062,11 @@ factorizations::Dict{Int, Accumulator{Int, Int}} =
     primes::Vector{Int}
 
 Module-level cache for yet computed prime numbers.
+
+!!! danger "Cache corruption"
+    Do **not** populate the cache yourself, as this may lead to cache
+    corruption!  Only let the FRACTRAN.jl functions handle the cache and
+    add elements.
 
 # Extended help
 
