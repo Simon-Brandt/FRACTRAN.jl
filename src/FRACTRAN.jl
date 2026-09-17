@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-15
+# Last Modification: 2026-09-17
 
 """
 Julia implementation of the esoteric programming language FRACTRAN.
@@ -690,6 +690,11 @@ function add!(
     a::Integer,
     b::Integer,
 )::Int
+    # Check that `a` and `b` are positive, or throw an error.
+    a >= 1 || throw(_MDError(md"`a` must be `≥ 1`."))
+    b >= 1 || throw(_MDError(md"`b` must be `≥ 1`."))
+
+    # Run the FRACTRAN program.
     n = 2^a * 3^b
     fractions = (3//2,)
     return (
@@ -752,6 +757,11 @@ function sub!(
     a::Integer,
     b::Integer,
 )::Int
+    # Check that `a` and `b` are positive, or throw an error.
+    a >= 1 || throw(_MDError(md"`a` must be `≥ 1`."))
+    b >= 1 || throw(_MDError(md"`b` must be `≥ 1`."))
+
+    # Run the FRACTRAN program.
     n = 2^a * 3^b
     fractions = (1//6,)
     result = fractran!(factorizations, primes, n, fractions)
@@ -818,6 +828,11 @@ function mul!(
     a::Integer,
     b::Integer,
 )::Int
+    # Check that `a` and `b` are positive, or throw an error.
+    a >= 1 || throw(_MDError(md"`a` must be `≥ 1`."))
+    b >= 1 || throw(_MDError(md"`b` must be `≥ 1`."))
+
+    # Run the FRACTRAN program.
     n = 2^a * 3^b
     fractions = (455//33, 11//13, 1//11, 3//7, 11//2, 1//3)
     return (
@@ -887,6 +902,11 @@ function divrem!(
     a::Integer,
     b::Integer,
 )::Tuple{Int, Int}
+    # Check that `a` and `b` are positive, or throw an error.
+    a >= 1 || throw(_MDError(md"`a` must be `≥ 1`."))
+    b >= 1 || throw(_MDError(md"`b` must be `≥ 1`."))
+
+    # Run the FRACTRAN program.
     n = 2^a * 3^b * 11
     fractions = (91//66, 11//13, 1//33, 85//11, 57//119, 17//19, 11//17, 1//3)
     result = fractran!(factorizations, primes, n, fractions)
@@ -969,6 +989,10 @@ function primegame!(
     primes::Vector{Int},
     max_iterations::Integer = 100,
 )::Vector{Int}
+    # Check that `max_iterations` is positive, or throw an error.
+    max_iterations >= 1 || throw(_MDError(md"`max_iterations` must be `≥ 1`."))
+
+    # Run the FRACTRAN program.
     n = 2
     fractions = (
         17//91, 78//85, 19//51, 23//38, 29//33, 77//29, 95//23, 77//19, 1//17,
@@ -989,6 +1013,7 @@ function primegame!(
         n = result
     end
 
+    # Filter the output.
     found_primes = Int[]
     for result in results
         factors = factorize!(factorizations, primes, result)

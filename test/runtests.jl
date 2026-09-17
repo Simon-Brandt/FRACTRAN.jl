@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-15
+# Last Modification: 2026-09-17
 
 using Markdown: Markdown, @md_str
 using Test: @test, @testset, @test_throws
@@ -467,25 +467,81 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
         end
 
         # Test the addition program.
-        @testset "Addition program" for T in TYPES, a in 1:10, b in 1:10
-            @test FRACTRAN.add(T(a), T(b)) == a + b
+        @testset "Addition program" begin
+            @testset "Addition program with input type $T" for T in TYPES, a in 1:10, b in 1:10
+                @test FRACTRAN.add(T(a), T(b)) == a + b
+            end
+
+            @test_throws FRACTRAN._MDError FRACTRAN.add(-1, 2)
+            @test_throws _to_str(md"`a` must be `≥ 1`.") FRACTRAN.add(-1, 2)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.add(0, 2)
+            @test_throws _to_str(md"`a` must be `≥ 1`.") FRACTRAN.add(0, 2)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.add(2, -1)
+            @test_throws _to_str(md"`b` must be `≥ 1`.") FRACTRAN.add(2, -1)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.add(2, 0)
+            @test_throws _to_str(md"`b` must be `≥ 1`.") FRACTRAN.add(2, 0)
         end
 
         # Test the subtraction program.
-        @testset "Subtraction program" for T in TYPES, a in 1:10, b in 1:10
-            @test FRACTRAN.sub(T(a), T(b)) == a - b
+        @testset "Subtraction program" begin
+            @testset "Subtraction program with input type $T" for T in TYPES, a in 1:10, b in 1:10
+                @test FRACTRAN.sub(T(a), T(b)) == a - b
+            end
+
+            @test_throws FRACTRAN._MDError FRACTRAN.sub(-1, 2)
+            @test_throws _to_str(md"`a` must be `≥ 1`.") FRACTRAN.sub(-1, 2)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.sub(0, 2)
+            @test_throws _to_str(md"`a` must be `≥ 1`.") FRACTRAN.sub(0, 2)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.sub(2, -1)
+            @test_throws _to_str(md"`b` must be `≥ 1`.") FRACTRAN.sub(2, -1)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.sub(2, 0)
+            @test_throws _to_str(md"`b` must be `≥ 1`.") FRACTRAN.sub(2, 0)
         end
 
         # Test the multiplication program.  Use only `1 ≤ a ≤ 4` and
         # `1 ≤ b ≤ 5` as otherwise, the prime number generation would
         # take too long.
-        @testset "Multiplication program" for T in TYPES, a in 1:4, b in 1:5
-            @test FRACTRAN.mul(T(a), T(b)) == a * b
+        @testset "Multiplication program" begin
+            @testset "Multiplication program with input type $T" for T in TYPES, a in 1:4, b in 1:5
+                @test FRACTRAN.mul(T(a), T(b)) == a * b
+            end
+
+            @test_throws FRACTRAN._MDError FRACTRAN.mul(-1, 2)
+            @test_throws _to_str(md"`a` must be `≥ 1`.") FRACTRAN.mul(-1, 2)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.mul(0, 2)
+            @test_throws _to_str(md"`a` must be `≥ 1`.") FRACTRAN.mul(0, 2)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.mul(2, -1)
+            @test_throws _to_str(md"`b` must be `≥ 1`.") FRACTRAN.mul(2, -1)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.mul(2, 0)
+            @test_throws _to_str(md"`b` must be `≥ 1`.") FRACTRAN.mul(2, 0)
         end
 
         # Test the division program.
-        @testset "Division program" for T in TYPES, a in 1:10, b in 1:10
-            @test FRACTRAN.divrem(T(a), T(b)) == divrem(a, b)
+        @testset "Division program" begin
+            @testset "Division program with input type $T" for T in TYPES, a in 1:10, b in 1:10
+                @test FRACTRAN.divrem(T(a), T(b)) == divrem(a, b)
+            end
+
+            @test_throws FRACTRAN._MDError FRACTRAN.divrem(-1, 2)
+            @test_throws _to_str(md"`a` must be `≥ 1`.") FRACTRAN.divrem(-1, 2)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.divrem(0, 2)
+            @test_throws _to_str(md"`a` must be `≥ 1`.") FRACTRAN.divrem(0, 2)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.divrem(2, -1)
+            @test_throws _to_str(md"`b` must be `≥ 1`.") FRACTRAN.divrem(2, -1)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.divrem(2, 0)
+            @test_throws _to_str(md"`b` must be `≥ 1`.") FRACTRAN.divrem(2, 0)
         end
 
         # Test the PRIMEGAME program.
@@ -497,6 +553,12 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
             @testset "PRIMEGAME program with input type $T" for T in TYPES
                 @test FRACTRAN.primegame(T(100)) == filter(<=(3), PRIMES)
             end
+
+            @test_throws FRACTRAN._MDError FRACTRAN.primegame(-1)
+            @test_throws _to_str(md"`max_iterations` must be `≥ 1`.") FRACTRAN.primegame(-1)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.primegame(0)
+            @test_throws _to_str(md"`max_iterations` must be `≥ 1`.") FRACTRAN.primegame(0)
         end
     end
 
