@@ -501,6 +501,22 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
             end
         end
 
+        # Test the results' identity between the non-mutating and the
+        # mutating versions of the function.
+        @testset "Value identity with cache" begin
+            @test ==(
+                fractran(3^4 * 5^2, 5//3),
+                fractran!(
+                    FRACTRAN.factorizations,
+                    FRACTRAN.primes,
+                    3^4 * 5^2,
+                    5//3,
+                ),
+            )
+            FRACTRAN.factorizations = Dict()
+            FRACTRAN.primes = Int64[]
+        end
+
         # Test invalid start numbers and fractions.  Note that Julia
         # converts `Rational`s to their lowest terms, possibly with
         # negative numerators, not denominators, so the test results
@@ -568,6 +584,17 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
             end
         end
 
+        # Test the results' identity between the non-mutating and the
+        # mutating versions of the function.
+        @testset "Value identity with cache" begin
+            @test ==(
+                FRACTRAN.add(4, 2),
+                FRACTRAN.add!(FRACTRAN.factorizations, FRACTRAN.primes, 4, 2),
+            )
+            FRACTRAN.factorizations = Dict()
+            FRACTRAN.primes = Int64[]
+        end
+
         # Test invalid augends and addends, and the resulting FRACTRAN
         # start number.
         @testset "Invalid `a`" begin
@@ -616,6 +643,17 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
             for a in 1:10, b in 1:10
                 @test FRACTRAN.sub(T(a), T(b)) == a - b
             end
+        end
+
+        # Test the results' identity between the non-mutating and the
+        # mutating versions of the function.
+        @testset "Value identity with cache" begin
+            @test ==(
+                FRACTRAN.sub(4, 2),
+                FRACTRAN.sub!(FRACTRAN.factorizations, FRACTRAN.primes, 4, 2),
+            )
+            FRACTRAN.factorizations = Dict()
+            FRACTRAN.primes = Int64[]
         end
 
         # Test invalid minuends and subtrahends, and the resulting
@@ -669,6 +707,17 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
             end
         end
 
+        # Test the results' identity between the non-mutating and the
+        # mutating versions of the function.
+        @testset "Value identity with cache" begin
+            @test ==(
+                FRACTRAN.mul(4, 2),
+                FRACTRAN.mul!(FRACTRAN.factorizations, FRACTRAN.primes, 4, 2),
+            )
+            FRACTRAN.factorizations = Dict()
+            FRACTRAN.primes = Int64[]
+        end
+
         # Test invalid multipliers and multiplicands, and the resulting
         # FRACTRAN start number.
         @testset "Invalid `a`" begin
@@ -718,6 +767,22 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
             for a in 1:10, b in 1:10
                 @test FRACTRAN.divrem(T(a), T(b)) == divrem(a, b)
             end
+        end
+
+        # Test the results' identity between the non-mutating and the
+        # mutating versions of the function.
+        @testset "Value identity with cache" begin
+            @test ==(
+                FRACTRAN.divrem(4, 2),
+                FRACTRAN.divrem!(
+                    FRACTRAN.factorizations,
+                    FRACTRAN.primes,
+                    4,
+                    2,
+                ),
+            )
+            FRACTRAN.factorizations = Dict()
+            FRACTRAN.primes = Int64[]
         end
 
         # Test invalid dividends and divisors, and the resulting
@@ -774,6 +839,21 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
         # Test different argument types.
         @testset "Argument type `$T`" for T in TYPES
             @test FRACTRAN.primegame(T(100)) == filter(<=(3), PRIMES)
+        end
+
+        # Test the results' identity between the non-mutating and the
+        # mutating versions of the function.
+        @testset "Value identity with cache" begin
+            @test ==(
+                FRACTRAN.primegame(1000),
+                FRACTRAN.primegame!(
+                    FRACTRAN.factorizations,
+                    FRACTRAN.primes,
+                    1000,
+                ),
+            )
+            FRACTRAN.factorizations = Dict()
+            FRACTRAN.primes = Int64[]
         end
 
         # Test invalid maximum iterations.
