@@ -254,10 +254,18 @@ function _check_arg_value(
     min_value::Integer = 1,
 )::Nothing
     # Check that the `value` of the variable `varname` is greater than,
-    # or equal to, `min_value`.
+    # or equal to, `min_value`, and smaller than, or equal to, the type
+    # maximum.
     if value < min_value
         throw(_MDError(Markdown.parse(
             "`$(varname)` must be `≥ $(min_value)`."
+        )))
+    end
+
+    if value > typemax(Int)
+        throw(_MDError(Markdown.parse(
+            "`$(varname)` must be `≤ typemax(Int)` (on your machine, \
+            `$(typemax(Int))`)."
         )))
     end
 
@@ -273,6 +281,20 @@ function _check_arg_values(
     # maximum.
     _check_arg_value(:a, a)
     _check_arg_value(:b, b)
+
+    # Check that the FRACTRAN program's start number is small enough.
+    start_number = big(bases[1]) ^ a * big(bases[2]) ^ b
+    if length(bases) > 2
+        start_number *= prod(bases[3:end])
+    end
+
+    if start_number > typemax(Int)
+        throw(_MDError(Markdown.parse(
+            "`a` and `b` must be small enough to fit the program's start \
+            number: `n = 2^a * 3^b ≤ typemax(Int)` (on your machine, \
+            `$(typemax(Int))`)."
+        )))
+    end
 
     return nothing
 end
