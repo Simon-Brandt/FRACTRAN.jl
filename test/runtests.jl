@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-17
+# Last Modification: 2026-09-18
 
 using Markdown: Markdown, @md_str
 using Test: @test, @testset, @test_throws
@@ -322,8 +322,20 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
         @test_throws FRACTRAN._MDError generate_primes(4, 10)
         @test_throws _to_str(md"`min_n` must be odd.") generate_primes(4, 10)
 
+        @test_throws FRACTRAN._MDError generate_primes(big(typemax(Int)) + 1, 10)
+        @test_throws _to_str(Markdown.parse(
+            "`min_n` must be `≤ typemax(Int)` (on your machine, \
+            `$(typemax(Int))`)."
+        )) generate_primes(big(typemax(Int)) + 1, 10)
+
         @test_throws FRACTRAN._MDError generate_primes(5, 3)
-        @test_throws _to_str(md"`max_n` must be `≥ min_n`.") generate_primes(5, 3)
+        @test_throws _to_str(md"`max_n` must be `≥ 5`.") generate_primes(5, 3)
+
+        @test_throws FRACTRAN._MDError generate_primes(2, big(typemax(Int)) + 1)
+        @test_throws _to_str(Markdown.parse(
+            "`max_n` must be `≤ typemax(Int)` (on your machine, \
+            `$(typemax(Int))`)."
+        )) generate_primes(2, big(typemax(Int)) + 1)
     end
 
     # Test FRACTRAN's factorization algorithm.
@@ -380,6 +392,12 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
 
         @test_throws FRACTRAN._MDError factorize(0)
         @test_throws _to_str(md"`n` must be `≥ 1`.") factorize(0)
+
+        @test_throws FRACTRAN._MDError factorize(big(typemax(Int)) + 1)
+        @test_throws _to_str(Markdown.parse(
+            "`n` must be `≤ typemax(Int)` (on your machine, \
+            `$(typemax(Int))`)."
+        )) factorize(big(typemax(Int)) + 1)
     end
 
     # Test FRACTRAN's factorization prettyprinting.
@@ -467,9 +485,9 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
         end
 
         # Test invalid start numbers and fractions.  Note that Julia
-        # converts `Rational`s where both the numerator and denominator
-        # are negative to their positive counterparts, so testing them
-        # is not necessary and does not throw.  Also note that
+        # converts `Rational`s to their lowest terms, possibly with
+        # negative numerators, not denominators, so the test results
+        # may contain other fractions than input.  Also note that
         # `Rational`s with ``0`` as denominator are allowed and can thus
         # be tested.
         @test_throws FRACTRAN._MDError fractran(-1, 1//2)
@@ -478,17 +496,35 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
         @test_throws FRACTRAN._MDError fractran(0, 1//2)
         @test_throws _to_str(md"`n` must be `≥ 1`.") fractran(0, 1//2)
 
-        @test_throws FRACTRAN._MDError fractran(1, -1//2)
-        @test_throws _to_str(md"All `fractions`' `numerator`s and `denominator`s must be `≥ 1`.") fractran(1, -1//2)
+        @test_throws FRACTRAN._MDError fractran(big(typemax(Int)) + 1, 1//2)
+        @test_throws _to_str(Markdown.parse(
+            "`n` must be `≤ typemax(Int)` (on your machine, \
+            `$(typemax(Int))`)."
+        )) fractran(big(typemax(Int)) + 1, 1//2)
 
-        @test_throws FRACTRAN._MDError fractran(1, 0//2)
-        @test_throws _to_str(md"All `fractions`' `numerator`s and `denominator`s must be `≥ 1`.") fractran(1, 0//2)
+        @test_throws FRACTRAN._MDError fractran(1, -1//2)
+        @test_throws _to_str(md"`numerator(fractions[1]) = numerator(-1//2)` must be `≥ 1`.") fractran(1, -1//2)
+
+        @test_throws FRACTRAN._MDError fractran(1, 0//1)
+        @test_throws _to_str(md"`numerator(fractions[1]) = numerator(0//1)` must be `≥ 1`.") fractran(1, 0//1)
+
+        @test_throws FRACTRAN._MDError fractran(1, (big(typemax(Int)) + 1) // 1)
+        @test_throws _to_str(Markdown.parse(
+            "`numerator(fractions[1]) = numerator($(big(typemax(Int)) + 1)//1)` \
+            must be `≤ typemax(Int)` (on your machine, `$(typemax(Int))`)."
+        )) fractran(1, (big(typemax(Int)) + 1) // 1)
 
         @test_throws FRACTRAN._MDError fractran(1, 1//-2)
-        @test_throws _to_str(md"All `fractions`' `numerator`s and `denominator`s must be `≥ 1`.") fractran(1, 1//-2)
+        @test_throws _to_str(md"`numerator(fractions[1]) = numerator(-1//2)` must be `≥ 1`.") fractran(1, 1//-2)
 
         @test_throws FRACTRAN._MDError fractran(1, 1//0)
-        @test_throws _to_str(md"All `fractions`' `numerator`s and `denominator`s must be `≥ 1`.") fractran(1, 1//0)
+        @test_throws _to_str(md"`denominator(fractions[1]) = denominator(1//0)` must be `≥ 1`.") fractran(1, 1//0)
+
+        @test_throws FRACTRAN._MDError fractran(1, 1 // (big(typemax(Int)) + 1))
+        @test_throws _to_str(Markdown.parse(
+            "`denominator(fractions[1]) = denominator(1//$(big(typemax(Int)) + 1))` \
+            must be `≤ typemax(Int)` (on your machine, `$(typemax(Int))`)."
+        )) fractran(1, 1 // (big(typemax(Int)) + 1))
 
         # Test the addition program.
         @testset "Addition program" begin
@@ -502,11 +538,30 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
             @test_throws FRACTRAN._MDError FRACTRAN.add(0, 2)
             @test_throws _to_str(md"`a` must be `≥ 1`.") FRACTRAN.add(0, 2)
 
+            @test_throws FRACTRAN._MDError FRACTRAN.add(big(typemax(Int)) + 1, 2)
+            @test_throws _to_str(Markdown.parse(
+                "`a` must be `≤ typemax(Int)` (on your machine, \
+                `$(typemax(Int))`)."
+            )) FRACTRAN.add(big(typemax(Int)) + 1, 2)
+
             @test_throws FRACTRAN._MDError FRACTRAN.add(2, -1)
             @test_throws _to_str(md"`b` must be `≥ 1`.") FRACTRAN.add(2, -1)
 
             @test_throws FRACTRAN._MDError FRACTRAN.add(2, 0)
             @test_throws _to_str(md"`b` must be `≥ 1`.") FRACTRAN.add(2, 0)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.add(2, big(typemax(Int)) + 1)
+            @test_throws _to_str(Markdown.parse(
+                "`b` must be `≤ typemax(Int)` (on your machine, \
+                `$(typemax(Int))`)."
+            )) FRACTRAN.add(2, big(typemax(Int)) + 1)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.add(25, 25)
+            @test_throws _to_str(Markdown.parse(
+                "`a` and `b` must be small enough to fit the program's start \
+                number: `n = 2^a * 3^b ≤ typemax(Int)` (on your machine, \
+                `$(typemax(Int))`)."
+            )) FRACTRAN.add(25, 25)
         end
 
         # Test the subtraction program.
@@ -521,11 +576,30 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
             @test_throws FRACTRAN._MDError FRACTRAN.sub(0, 2)
             @test_throws _to_str(md"`a` must be `≥ 1`.") FRACTRAN.sub(0, 2)
 
+            @test_throws FRACTRAN._MDError FRACTRAN.sub(big(typemax(Int)) + 1, 2)
+            @test_throws _to_str(Markdown.parse(
+                "`a` must be `≤ typemax(Int)` (on your machine, \
+                `$(typemax(Int))`)."
+            )) FRACTRAN.sub(big(typemax(Int)) + 1, 2)
+
             @test_throws FRACTRAN._MDError FRACTRAN.sub(2, -1)
             @test_throws _to_str(md"`b` must be `≥ 1`.") FRACTRAN.sub(2, -1)
 
             @test_throws FRACTRAN._MDError FRACTRAN.sub(2, 0)
             @test_throws _to_str(md"`b` must be `≥ 1`.") FRACTRAN.sub(2, 0)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.sub(2, big(typemax(Int)) + 1)
+            @test_throws _to_str(Markdown.parse(
+                "`b` must be `≤ typemax(Int)` (on your machine, \
+                `$(typemax(Int))`)."
+            )) FRACTRAN.sub(2, big(typemax(Int)) + 1)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.sub(25, 25)
+            @test_throws _to_str(Markdown.parse(
+                "`a` and `b` must be small enough to fit the program's start \
+                number: `n = 2^a * 3^b ≤ typemax(Int)` (on your machine, \
+                `$(typemax(Int))`)."
+            )) FRACTRAN.sub(25, 25)
         end
 
         # Test the multiplication program.  Use only `1 ≤ a ≤ 4` and
@@ -542,11 +616,30 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
             @test_throws FRACTRAN._MDError FRACTRAN.mul(0, 2)
             @test_throws _to_str(md"`a` must be `≥ 1`.") FRACTRAN.mul(0, 2)
 
+            @test_throws FRACTRAN._MDError FRACTRAN.mul(big(typemax(Int)) + 1, 2)
+            @test_throws _to_str(Markdown.parse(
+                "`a` must be `≤ typemax(Int)` (on your machine, \
+                `$(typemax(Int))`)."
+            )) FRACTRAN.mul(big(typemax(Int)) + 1, 2)
+
             @test_throws FRACTRAN._MDError FRACTRAN.mul(2, -1)
             @test_throws _to_str(md"`b` must be `≥ 1`.") FRACTRAN.mul(2, -1)
 
             @test_throws FRACTRAN._MDError FRACTRAN.mul(2, 0)
             @test_throws _to_str(md"`b` must be `≥ 1`.") FRACTRAN.mul(2, 0)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.mul(2, big(typemax(Int)) + 1)
+            @test_throws _to_str(Markdown.parse(
+                "`b` must be `≤ typemax(Int)` (on your machine, \
+                `$(typemax(Int))`)."
+            )) FRACTRAN.mul(2, big(typemax(Int)) + 1)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.mul(25, 25)
+            @test_throws _to_str(Markdown.parse(
+                "`a` and `b` must be small enough to fit the program's start \
+                number: `n = 2^a * 3^b ≤ typemax(Int)` (on your machine, \
+                `$(typemax(Int))`)."
+            )) FRACTRAN.mul(25, 25)
         end
 
         # Test the division program.
@@ -561,11 +654,30 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
             @test_throws FRACTRAN._MDError FRACTRAN.divrem(0, 2)
             @test_throws _to_str(md"`a` must be `≥ 1`.") FRACTRAN.divrem(0, 2)
 
+            @test_throws FRACTRAN._MDError FRACTRAN.divrem(big(typemax(Int)) + 1, 2)
+            @test_throws _to_str(Markdown.parse(
+                "`a` must be `≤ typemax(Int)` (on your machine, \
+                `$(typemax(Int))`)."
+            )) FRACTRAN.divrem(big(typemax(Int)) + 1, 2)
+
             @test_throws FRACTRAN._MDError FRACTRAN.divrem(2, -1)
             @test_throws _to_str(md"`b` must be `≥ 1`.") FRACTRAN.divrem(2, -1)
 
             @test_throws FRACTRAN._MDError FRACTRAN.divrem(2, 0)
             @test_throws _to_str(md"`b` must be `≥ 1`.") FRACTRAN.divrem(2, 0)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.divrem(2, big(typemax(Int)) + 1)
+            @test_throws _to_str(Markdown.parse(
+                "`b` must be `≤ typemax(Int)` (on your machine, \
+                `$(typemax(Int))`)."
+            )) FRACTRAN.divrem(2, big(typemax(Int)) + 1)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.divrem(25, 25)
+            @test_throws _to_str(Markdown.parse(
+                "`a` and `b` must be small enough to fit the program's start \
+                number: `n = 2^a * 3^b ≤ typemax(Int)` (on your machine, \
+                `$(typemax(Int))`)."
+            )) FRACTRAN.divrem(25, 25)
         end
 
         # Test the PRIMEGAME program.
@@ -583,6 +695,12 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
 
             @test_throws FRACTRAN._MDError FRACTRAN.primegame(0)
             @test_throws _to_str(md"`max_iterations` must be `≥ 1`.") FRACTRAN.primegame(0)
+
+            @test_throws FRACTRAN._MDError FRACTRAN.primegame(big(typemax(Int)) + 1)
+            @test_throws _to_str(Markdown.parse(
+                "`max_iterations` must be `≤ typemax(Int)` (on your machine, \
+                `$(typemax(Int))`)."
+            )) FRACTRAN.primegame(big(typemax(Int)) + 1)
         end
     end
 
