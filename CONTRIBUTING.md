@@ -80,17 +80,23 @@ The coding style for FRACTRAN.jl is inspired by [Python's PEP 8](https://peps.py
   - Be rather generous with whitespace.  Use a space around conditionals and arithmetic or logical operators.
   - Use blank lines to separate blocks of related code from each other.
   - Use Unix linebreaks (LF), not DOS linebreaks (CRLF).
+- ***Imports:***
+  - Import modules with `using`, not `import`, as `using Module: Module`.  By this, it is impossible to inadvertently add methods to foreign (unqualified) functions.  Besides, it is much clearer where a used symbol comes from.
+  - Avoid "wildcard" imports (`using Module`).  Only import names that you actually need.  In most cases, this should be only the module (`using Module: Module`), and in some cases, a specific symbol (`using Module: symbol`).
+  - Wildcard imports are acceptable in the [tests](test/runtests.jl) (only for FRACTRAN.jl) and [documentation creation](docs/make.jl) (for FRACTRAN.jl and Documenter-related functions).
 - ***Functions:***
   - Put all code in functions.  This facilitates re-usability, but, more importantly, helps the  Julia compiler.
   - Use a verb in imperative mode as function name, usually followed by some other words.  Abbreviate only very common and often used words.  Use `lowercase_with_underscores` ("snake case") for the name.  Prefix private functions with an underscore.
   - Mark a function as `public` if it should be part of the API, but not directly available by an unqualified name (without the module as prefix).  Mark it as `export`ed if it should be directly available—this should apply to rather few functions.
+  - Always use type annotations for the function's arguments *and* return value(s).  Make sure, however, that the return type annotation is a no-op and does not impose an implicit type conversion.  In other words, inspect the function's return type *without* an annotation, and use that expression as annotation.  Make sure that no code path may create a different type.  For argument types, use abstract types whenever they make sense for the function.  Private functions, where the API can change when needed, are free to be annotated with concrete types, only.
   - Start the function with a docstring describing its purpose, `jldoctest`-style usage examples, and possibly some extended help.
+  - Always use an explicit `return`.  If there is no value to return, use `return nothing`.
 - ***Variables:***
   - Always use local variables.  Pass globals as arguments, not as actual globals.
   - Try using a noun as variable identifier.  Like for functions, abbreviate only very common and often used words.  Use `lowercase_with_underscores` ("snake case") for the identifier.  Don't use a leading underscore to indicate private use, since *all* variables are local.
   - Use descriptive variable names.  This still includes `i`, `j`, *etc.* as loop variables, when they just hold an integer.
 - ***Unicode***:
-  - Use as few Unicode characters in the actual source code as possible.  This dramatically simplifies seraching for them.  *I.e.*, prefer `>=` over `≥`, `!in()` over `∉` *etc.*  
+  - Use as few Unicode characters in the actual source code as possible.  This dramatically simplifies seraching for them.  *I.e.*, prefer `>=` over `≥`, `!in()` over `∉`, *etc.*  
   *Note: This rule is currently under consideration and may be removed in the future.*
   - In comments and docstrings (except code blocks), Unicode characters are fine, *e.g.*, for formatting tables.
 
@@ -114,10 +120,12 @@ The documentation (including docstrings) is written in [Julia Markdown](https://
 - ***Lists:***
   - Use hyphens (`-`) to markup unnumbered lists, not asterisks (`*`) or plus signs (`+`).  Use a literal `1.` for numbered lists, irrespective of the actual number.  This facilitates re-ordering the list and deleting elements, without needing to refactor it in its entirety.
   - Top-level lists must be surrounded by one blank line each.  Nested lists only need blank lines when containing other top-level blocks.
+- ***Admonitions:***
+  - Admonitions (warnings, notes, tips, *etc.*) are useful, but avoid using too many, and nesting them.  When necessary, however, they're completely fine to use.
 - ***Code blocks:***
   - Feel free to use a copious number of code blocks to show code examples.
   - Surround code blocks by blank lines and triple backticks (```` ``` ````).  Use a language specification to enable syntax highlighting (usually `julia` or `jldoctest`), even when none exists (like for `text`).  Only use indented code blocks for the leading symbol signature in docstrings.
-- ***Emphasis:***
-  - Use bold font sparingly, to draw attention to a certain point.  Use italics for normal emphasis and foreign-language words like Latin abbreviations.
 - ***In-line code:***
   - Be aware of the difference between backticks for code and LaTeX elements:  An odd number of backticks (like `` `...` `` and ```` ```...``` ````) means code, an even number (like ``` ``...`` ``` and ````` ````...```` `````) LaTeX elements.
+- ***Emphasis:***
+  - Use bold font sparingly, to draw attention to a certain point.  Use italics for normal emphasis and foreign-language words like Latin abbreviations.
