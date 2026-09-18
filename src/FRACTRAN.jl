@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-17
+# Last Modification: 2026-09-18
 
 """
 Julia implementation of the esoteric programming language FRACTRAN.
@@ -248,6 +248,35 @@ function _isinteger(counter::Accumulator{Int, Int})::Bool
     return all(exponent >= 0 for exponent in values(counter))
 end
 
+function _check_arg_value(
+    varname::Symbol,
+    value::Integer;
+    min_value::Integer = 1,
+)::Nothing
+    # Check that the `value` of the variable `varname` is greater than,
+    # or equal to, `min_value`.
+    if value < min_value
+        throw(_MDError(Markdown.parse(
+            "`$(varname)` must be `≥ $(min_value)`."
+        )))
+    end
+
+    return nothing
+end
+
+function _check_arg_values(
+    a::Integer,
+    b::Integer,
+    bases::Tuple{Int, Vararg{Int}},
+)::Nothing
+    # Check that `a` and `b` are positive and not greater than the type
+    # maximum.
+    _check_arg_value(:a, a)
+    _check_arg_value(:b, b)
+
+    return nothing
+end
+
 """
     generate_primes(min_n::Integer, max_n::Integer)::Vector{Int}
     generate_primes(max_n::Integer)::Vector{Int}
@@ -285,10 +314,10 @@ ERROR: ArgumentError:  min_n must be ≥ 2.
 generate_primes(max_n::Integer)::Vector{Int} = generate_primes(2, max_n)
 
 function generate_primes(min_n::Integer, max_n::Integer)::Vector{Int}
-    # Check that `min_n` is greater than 1 and odd, or throw an error.
-    min_n >= 2 || throw(_MDError(md"`min_n` must be `≥ 2`."))
+    # Check the values of `min_n` and `max_n`.
+    _check_arg_value(:min_n, min_n, min_value=2)
     min_n == 2 || isodd(min_n) || throw(_MDError(md"`min_n` must be odd."))
-    max_n >= min_n || throw(_MDError(md"`max_n` must be `≥ min_n`."))
+    _check_arg_value(:max_n, max_n, min_value=min_n)
 
     _min_n = Int(min_n)
     _max_n = Int(max_n)
@@ -375,8 +404,8 @@ function factorize!(
     primes::Vector{Int},
     n::Integer,
 )::Accumulator{Int, Int}
-    # Check that `n` is positive, or throw an error.
-    n >= 1 || throw(_MDError(md"`n` must be `≥ 1`."))
+    # Check the value of `n`.
+    _check_arg_value(:n, n)
     _n = Int(n)
 
     # If the factorization has already been computed for `_n`, return
@@ -615,17 +644,19 @@ function fractran!(
     fractions::Rational{<:Integer}...;
     return_first::Bool = false,
 )::Int
-    # Check that `n` and all `fractions`' numerators and denominators
-    # are positive, or throw an error.
-    n >= 1 || throw(_MDError(md"`n` must be `≥ 1`."))
+    # Check the values of `n` and all `fractions`' numerators and
+    # denominators.
+    _check_arg_value(:n, n)
 
-    if any(
-        numerator(fraction) < 1 || denominator(fraction) < 1
-        for fraction in fractions
-    )
-        throw(_MDError(
-            md"All `fractions`' `numerator`s and `denominator`s must be `≥ 1`."
-        ))
+    for (i, fraction) in enumerate(fractions)
+        _check_arg_value(
+            Symbol("numerator(fractions[$i]) = numerator($fraction)"),
+            numerator(fraction),
+        )
+        _check_arg_value(
+            Symbol("denominator(fractions[$i]) = denominator($fraction)"),
+            denominator(fraction),
+        )
     end
 
     # Factorize `n` and each `fraction` for more efficient operation on
@@ -726,9 +757,8 @@ function add!(
     a::Integer,
     b::Integer,
 )::Int
-    # Check that `a` and `b` are positive, or throw an error.
-    a >= 1 || throw(_MDError(md"`a` must be `≥ 1`."))
-    b >= 1 || throw(_MDError(md"`b` must be `≥ 1`."))
+    # Check the values of `a` and `b`.
+    _check_arg_values(a, b, (2, 3))
 
     # Run the FRACTRAN program.
     n = 2^a * 3^b
@@ -793,9 +823,8 @@ function sub!(
     a::Integer,
     b::Integer,
 )::Int
-    # Check that `a` and `b` are positive, or throw an error.
-    a >= 1 || throw(_MDError(md"`a` must be `≥ 1`."))
-    b >= 1 || throw(_MDError(md"`b` must be `≥ 1`."))
+    # Check the values of `a` and `b`.
+    _check_arg_values(a, b, (2, 3))
 
     # Run the FRACTRAN program.
     n = 2^a * 3^b
@@ -864,9 +893,8 @@ function mul!(
     a::Integer,
     b::Integer,
 )::Int
-    # Check that `a` and `b` are positive, or throw an error.
-    a >= 1 || throw(_MDError(md"`a` must be `≥ 1`."))
-    b >= 1 || throw(_MDError(md"`b` must be `≥ 1`."))
+    # Check the values of `a` and `b`.
+    _check_arg_values(a, b, (2, 3))
 
     # Run the FRACTRAN program.
     n = 2^a * 3^b
@@ -938,9 +966,8 @@ function divrem!(
     a::Integer,
     b::Integer,
 )::Tuple{Int, Int}
-    # Check that `a` and `b` are positive, or throw an error.
-    a >= 1 || throw(_MDError(md"`a` must be `≥ 1`."))
-    b >= 1 || throw(_MDError(md"`b` must be `≥ 1`."))
+    # Check the values of `a` and `b`.
+    _check_arg_values(a, b, (2, 3, 11))
 
     # Run the FRACTRAN program.
     n = 2^a * 3^b * 11
@@ -1025,8 +1052,8 @@ function primegame!(
     primes::Vector{Int},
     max_iterations::Integer = 100,
 )::Vector{Int}
-    # Check that `max_iterations` is positive, or throw an error.
-    max_iterations >= 1 || throw(_MDError(md"`max_iterations` must be `≥ 1`."))
+    # Check the value of `max_iterations`.
+    _check_arg_value(:max_iterations, max_iterations)
 
     # Run the FRACTRAN program.
     n = 2
