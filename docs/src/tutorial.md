@@ -197,9 +197,9 @@ using BenchmarkTools
 @btime fractran!($FRACTRAN.factorizations, $FRACTRAN.primes, 2^5 * 3^3, 2//3);  # With cache.
 ```
 
-As you can see, you can pass the module-level caches [`FRACTRAN.factorizations`](@ref) and [`FRACTRAN.primes`](@ref) to `fractran!`, and obtain some speedups.
+As you can see, you can pass the module-level caches [`FRACTRAN.factorizations`](@ref) and [`FRACTRAN.primes`](@ref) to [`fractran!`](@ref), and obtain some speedups.
 
-Finally, both [`fractran`](@ref) and `fractran!` take an optional keyword argument, `return_first`, which does not run the FRACTRAN algorithm to completion, but instead returns the *first* product that is a natural number, instead of the usual *last*.  This is (currently) required for infinitely running programs, like PRIMEGAME (see below), to be able to filter the result.
+Finally, both [`fractran`](@ref) and [`fractran!`](@ref) take two optional keyword arguments, `max_steps` and `return_first`.  Both are designed to be used for non-terminating programs.  `max_steps` acts as "safeguard" to abort the FRACTRAN algorithm when `max_steps` steps have been run without finding an integer (like when having an inadvertent infinite loop).  In this case, an error is thrown.  With `return_first`, the FRACTRAN algorithm does not run to completion, but instead returns the *first* product that is a natural number, instead of the usual *last*.  This argument is (currently) required for infinitely running programs, like PRIMEGAME (see below), to be able to filter the result.
 
 !!! note
     `return_first` may be changed/removed in the future (as breaking change).
