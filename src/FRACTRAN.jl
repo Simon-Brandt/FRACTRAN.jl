@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-18
+# Last Modification: 2026-09-21
 
 """
 Julia implementation of the esoteric programming language FRACTRAN.
@@ -549,12 +549,14 @@ end
     fractran(
         n::Integer,
         fractions::Rational{<:Integer}...;
+        max_steps::Integer = 1000,
         return_first::Bool = false,
     )::Int
 
     fractran(
         n::Integer,
         fractions::Tuple{Rational{<:Integer}, Vararg{Rational{<:Integer}}};
+        max_steps::Integer = 1000,
         return_first::Bool = false,
     )::Int
 
@@ -563,6 +565,7 @@ end
         primes::Vector{Int},
         n::Integer,
         fractions::Rational{<:Integer}...;
+        max_steps::Integer = 1000,
         return_first::Bool = false,
     )::Int
 
@@ -571,6 +574,7 @@ end
         primes::Vector{Int},
         n::Integer,
         fractions::Tuple{Rational{<:Integer}, Vararg{Rational{<:Integer}}};
+        max_steps::Integer = 1000,
         return_first::Bool = false,
     )::Int
 
@@ -580,7 +584,13 @@ If `return_first` is `true` (default: `false`), return the first
 obtained integer.  Else, run the algorithm until no fraction yields an
 integer and return the last integer.  This is the FRACTRAN algorithm's
 actual result—`return_first` is needed by some specific programs like
-PRIMEGAME that filter the FRACTRAN integers.
+[PRIMEGAME](@ref `FRACTRAN.primegame`) that filter the FRACTRAN
+integers.
+
+At most `max_steps` FRACTRAN iterations are run, which is necessary for
+non-terminating programs when not using `return_first` (like when
+interactively experimenting with arbitrary programs).  After `max_steps`
+steps, a 
 
 The third and fourth forms take cache arguments for accelerated
 computations, see the Extended help.
@@ -632,21 +642,39 @@ fractran, fractran!
 function fractran(
     n::Integer,
     fractions::Tuple{Rational{<:Integer}, Vararg{Rational{<:Integer}}};
+    max_steps::Integer = 1000,
     return_first::Bool = false,
 )::Int
     factorizations = Dict{Int, Accumulator{Int, Int}}()
     primes = Int[]
-    return fractran!(factorizations, primes, n, fractions...; return_first)
+
+    return fractran!(
+        factorizations,
+        primes,
+        n,
+        fractions...;
+        max_steps,
+        return_first,
+    )
 end
 
 function fractran(
     n::Integer,
     fractions::Rational{<:Integer}...;
+    max_steps::Integer = 1000,
     return_first::Bool = false,
 )::Int
     factorizations = Dict{Int, Accumulator{Int, Int}}()
     primes = Int[]
-    return fractran!(factorizations, primes, n, fractions; return_first)
+
+    return fractran!(
+        factorizations,
+        primes,
+        n,
+        fractions;
+        max_steps,
+        return_first,
+    )
 end
 
 function fractran!(
@@ -654,9 +682,17 @@ function fractran!(
     primes::Vector{Int},
     n::Integer,
     fractions::Tuple{Rational{<:Integer}, Vararg{Rational{<:Integer}}};
+    max_steps::Integer = 1000,
     return_first::Bool = false,
 )::Int
-    return fractran!(factorizations, primes, n, fractions...; return_first)
+    return fractran!(
+        factorizations,
+        primes,
+        n,
+        fractions...;
+        max_steps,
+        return_first,
+    )
 end
 
 function fractran!(
@@ -664,10 +700,11 @@ function fractran!(
     primes::Vector{Int},
     n::Integer,
     fractions::Rational{<:Integer}...;
+    max_steps::Integer = 1000,
     return_first::Bool = false,
 )::Int
-    # Check the values of `n` and all `fractions`' numerators and
-    # denominators.
+    # Check the values of `n`, of all `fractions`' numerators and
+    # denominators, and of `max_steps`.
     _check_arg_value(:n, n)
 
     for (i, fraction) in enumerate(fractions)
@@ -680,6 +717,8 @@ function fractran!(
             denominator(fraction),
         )
     end
+
+    _check_arg_value(:max_steps, max_steps)
 
     # Factorize `n` and each `fraction` for more efficient operation on
     # the implicitly represented powers with a much lower risk of
@@ -698,6 +737,7 @@ function fractran!(
     # product with any fraction yields an integer.  The last integer
     # product is the result of the FRACTRAN algorithm.
     i = 1
+    step = 1
     result = copy(factors)
     while i <= length(fraction_powers)
         # Perform an operation equivalent to `result = n * fractions[i]`
@@ -715,11 +755,19 @@ function fractran!(
         end
 
         i += 1
+        step += 1
 
         if _isinteger(result)
             i = 1
             factors = result
             return_first && break
+        end
+
+        if step > max_steps
+            throw(ErrorException(
+                "Exceeded maximum FRACTRAN steps ($max_steps).  Is your \
+                program non-terminating?"
+            ))
         end
     end
 
