@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-18
+# Last Modification: 2026-09-21
 
 using Markdown: Markdown, @md_str
 using Test: @test, @testset, @test_throws
@@ -517,12 +517,48 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
             FRACTRAN.primes = Int64[]
         end
 
-        # Test invalid start numbers and fractions.  Note that Julia
-        # converts `Rational`s to their lowest terms, possibly with
-        # negative numerators, not denominators, so the test results
-        # may contain other fractions than input.  Also note that
-        # `Rational`s with ``0`` as denominator are allowed and can thus
-        # be tested.
+        # Test the step limit when running non-terminating programs
+        # using the PRIMEGAME program.
+        @testset "Step limit" begin
+            n = 2
+            fractions = (
+                17//91, 78//85, 19//51, 23//38, 29//33, 77//29, 95//23, 77//19,
+                1//17, 11//13, 13//11, 15//2, 1//7, 55//1,
+            )
+
+            @test_throws ErrorException fractran(n, fractions, max_steps=1000)
+            @test_throws "Exceeded maximum FRACTRAN steps (1000).  Is your \
+                program non-terminating?" fractran(n, fractions, max_steps=1000)
+        end
+
+        # Test the results' difference when returning the first integer
+        # instead of the last using the PRIMEGAME program.  Since this
+        # program is non-terminating, also pass a step limit to
+        # `fractran`.
+        @testset "First returned integer" begin
+            n = 2
+            fractions = (
+                17//91, 78//85, 19//51, 23//38, 29//33, 77//29, 95//23, 77//19,
+                1//17, 11//13, 13//11, 15//2, 1//7, 55//1,
+            )
+
+            @test !=(
+                fractran(n, fractions, max_steps=1000, return_first=true),
+
+                try
+                    fractran(n, fractions, max_steps=1000, return_first=false)
+                catch err
+                    err isa ErrorException && 0
+                end,
+            )
+        end
+
+        # Test invalid start numbers, fractions, and maximum step
+        # counts.  Note that Julia converts `Rational`s to their lowest
+        # terms, possibly with negative numerators, not denominators, so
+        # the test results may contain other fractions than input.  Also
+        # note that `Rational`s with ``0`` as denominator are allowed
+        # and can thus be tested.
         @testset "Invalid `n`" begin
             @test_throws FRACTRAN._MDError fractran(-1, 1//2)
             @test_throws _to_str(md"`n` must be `≥ 1`.") fractran(-1, 1//2)
@@ -571,6 +607,20 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
                 "`denominator(fractions[1]) = denominator(1//$(big(typemax(Int)) + 1))` \
                 must be `≤ typemax(Int)` (on your machine, `$(typemax(Int))`)."
             )) fractran(1, 1 // (big(typemax(Int)) + 1))
+        end
+
+        @testset "Invalid `max_steps`" begin
+            @test_throws FRACTRAN._MDError fractran(3^4 * 5^2, 5//3, max_steps=-1)
+            @test_throws _to_str(md"`max_steps` must be `≥ 1`.") fractran(3^4 * 5^2, 5//3, max_steps=-1)
+
+            @test_throws FRACTRAN._MDError fractran(3^4 * 5^2, 5//3, max_steps=0)
+            @test_throws _to_str(md"`max_steps` must be `≥ 1`.") fractran(3^4 * 5^2, 5//3, max_steps=0)
+
+            @test_throws FRACTRAN._MDError fractran(3^4 * 5^2, 5//3, max_steps=big(typemax(Int)) + 1)
+            @test_throws _to_str(Markdown.parse(
+                "`max_steps` must be `≤ typemax(Int)` (on your machine, \
+                `$(typemax(Int))`)."
+            )) fractran(3^4 * 5^2, 5//3, max_steps=big(typemax(Int)) + 1)
         end
     end
 
