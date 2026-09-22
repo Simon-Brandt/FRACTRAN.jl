@@ -49,7 +49,7 @@ julia> import FRACTRAN
 ...
 ```
 
-Now, you can define a start number and a `Tuple` of fractions, and pass them to `fractran`.  You can pipe the result to `factorize` to obtain the factorization to read out the FRACTRAN registers, and pipe the latter to `prettify_factorization` to get a prettified string representation:
+Now, you can define a start number and a `Tuple` of fractions, and pass them to `fractran`.  You can pipe the result to `FRACTRAN.factorize` to obtain the factorization to read out the FRACTRAN registers, and pipe the latter to `FRACTRAN.prettify_factorization` to get a prettified string representation:
 
 ```julia-repl
 julia> n = 2^3 * 3^4
@@ -61,15 +61,15 @@ julia> fractions = (2//3,)
 julia> result = fractran(n, fractions)
 128
 
-julia> factors = factorize(result)
+julia> factors = FRACTRAN.factorize(result)
 DataStructures.Accumulator{Int64, Int64} with 1 entry:
   2 => 7
 
-julia> prettify_factorization(factors)
+julia> FRACTRAN.prettify_factorization(factors)
 "2⁷"
 
 # Alternatively, shorter:
-julia> fractran(n, fractions) |> factorize |> prettify_factorization
+julia> fractran(n, fractions) |> FRACTRAN.factorize |> FRACTRAN.prettify_factorization
 "2⁷"
 ```
 
