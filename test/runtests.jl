@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-21
+# Last Modification: 2026-09-22
 
 using Markdown: Markdown, @md_str
 using Test: @test, @testset, @test_throws
@@ -305,41 +305,47 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
         # million by count.  These are 78,498, see
         # https://www.mathematical.com/primes0to1000k.html.
         @testset "Values" begin
-            @test generate_primes(3, 5) == [3, 5]
-            @test generate_primes(200) == PRIMES
-            @test length(generate_primes(1_000_000)) == 78_498
+            @test FRACTRAN.generate_primes(3, 5) == [3, 5]
+            @test FRACTRAN.generate_primes(200) == PRIMES
+            @test length(FRACTRAN.generate_primes(1_000_000)) == 78_498
         end
 
         # Test different argument types.
         @testset "Argument type `$T`" for T in TYPES
-            @test generate_primes(T(2), T(100)) == filter(<(100), PRIMES)
-            @test generate_primes(T(100)) == filter(<(100), PRIMES)
+            @test ==(
+                FRACTRAN.generate_primes(T(2), T(100)),
+                filter(<(100), PRIMES),
+            )
+            @test ==(
+                FRACTRAN.generate_primes(T(100)),
+                filter(<(100), PRIMES),
+            )
         end
 
         # Test invalid start and end numbers.
         @testset "Invalid `min_n`" begin
-            @test_throws FRACTRAN._MDError generate_primes(1, 10)
-            @test_throws _to_str(md"`min_n` must be `≥ 2`.") generate_primes(1, 10)
+            @test_throws FRACTRAN._MDError FRACTRAN.generate_primes(1, 10)
+            @test_throws _to_str(md"`min_n` must be `≥ 2`.") FRACTRAN.generate_primes(1, 10)
 
-            @test_throws FRACTRAN._MDError generate_primes(4, 10)
-            @test_throws _to_str(md"`min_n` must be odd.") generate_primes(4, 10)
+            @test_throws FRACTRAN._MDError FRACTRAN.generate_primes(4, 10)
+            @test_throws _to_str(md"`min_n` must be odd.") FRACTRAN.generate_primes(4, 10)
 
-            @test_throws FRACTRAN._MDError generate_primes(big(typemax(Int)) + 1, 10)
+            @test_throws FRACTRAN._MDError FRACTRAN.generate_primes(big(typemax(Int)) + 1, 10)
             @test_throws _to_str(Markdown.parse(
                 "`min_n` must be `≤ typemax(Int)` (on your machine, \
                 `$(typemax(Int))`)."
-            )) generate_primes(big(typemax(Int)) + 1, 10)
+            )) FRACTRAN.generate_primes(big(typemax(Int)) + 1, 10)
         end
 
         @testset "Invalid `max_n`" begin
-            @test_throws FRACTRAN._MDError generate_primes(5, 3)
-            @test_throws _to_str(md"`max_n` must be `≥ 5`.") generate_primes(5, 3)
+            @test_throws FRACTRAN._MDError FRACTRAN.generate_primes(5, 3)
+            @test_throws _to_str(md"`max_n` must be `≥ 5`.") FRACTRAN.generate_primes(5, 3)
 
-            @test_throws FRACTRAN._MDError generate_primes(2, big(typemax(Int)) + 1)
+            @test_throws FRACTRAN._MDError FRACTRAN.generate_primes(2, big(typemax(Int)) + 1)
             @test_throws _to_str(Markdown.parse(
                 "`max_n` must be `≤ typemax(Int)` (on your machine, \
                 `$(typemax(Int))`)."
-            )) generate_primes(2, big(typemax(Int)) + 1)
+            )) FRACTRAN.generate_primes(2, big(typemax(Int)) + 1)
         end
     end
 
@@ -347,20 +353,29 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
     @testset "Factorization" begin
         # Test the module-level caches `FRACTRAN.factorizations` and
         # `FRACTRAN.primes` by poisoning them with wrong values and
-        # circumventing the prime number generation in `factorize!`.
-        # Then, reset the caches for the subsequent tests.
+        # circumventing the prime number generation in
+        # `FRACTRAN.factorize!`.  Then, reset the caches for the
+        # subsequent tests.
         @testset "Cache usage" begin
             FRACTRAN.factorizations = Dict(42 => Accumulator(5 => 1))
             FRACTRAN.primes = Int64[]
             @test ==(
-                factorize!(FRACTRAN.factorizations, FRACTRAN.primes, 42),
+                FRACTRAN.factorize!(
+                    FRACTRAN.factorizations,
+                    FRACTRAN.primes,
+                    42,
+                ),
                 Accumulator(5 => 1),
             )
 
             FRACTRAN.factorizations = Dict()
             FRACTRAN.primes = [5, 9]
             @test ==(
-                factorize!(FRACTRAN.factorizations, FRACTRAN.primes, 45),
+                FRACTRAN.factorize!(
+                    FRACTRAN.factorizations,
+                    FRACTRAN.primes,
+                    45,
+                ),
                 Accumulator(5 => 1, 9 => 1),
             )
 
@@ -372,12 +387,16 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
         # then with the module-level caches.  Assure that the caches are
         # populated by testing their values, afterwards, and reset them.
         @testset "$i without cache" for i in 1:100
-            @test factorize(i) == FACTORIZATIONS[i]
+            @test FRACTRAN.factorize(i) == FACTORIZATIONS[i]
         end
 
         @testset "$i with cache" for i in 1:100
             @test ==(
-                factorize!(FRACTRAN.factorizations, FRACTRAN.primes, i),
+                FRACTRAN.factorize!(
+                    FRACTRAN.factorizations,
+                    FRACTRAN.primes,
+                    i,
+                ),
                 FACTORIZATIONS[i],
             )
         end
@@ -393,23 +412,23 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
         # Test different argument types.
         @testset "Argument type `$T`" for T in TYPES
             for i in 1:100
-                @test factorize(T(i)) == FACTORIZATIONS[i]
+                @test FRACTRAN.factorize(T(i)) == FACTORIZATIONS[i]
             end
         end
 
         # Test invalid numbers.
         @testset "Invalid `n`" begin
-            @test_throws FRACTRAN._MDError factorize(-1)
-            @test_throws _to_str(md"`n` must be `≥ 1`.") factorize(-1)
+            @test_throws FRACTRAN._MDError FRACTRAN.factorize(-1)
+            @test_throws _to_str(md"`n` must be `≥ 1`.") FRACTRAN.factorize(-1)
 
-            @test_throws FRACTRAN._MDError factorize(0)
-            @test_throws _to_str(md"`n` must be `≥ 1`.") factorize(0)
+            @test_throws FRACTRAN._MDError FRACTRAN.factorize(0)
+            @test_throws _to_str(md"`n` must be `≥ 1`.") FRACTRAN.factorize(0)
 
-            @test_throws FRACTRAN._MDError factorize(big(typemax(Int)) + 1)
+            @test_throws FRACTRAN._MDError FRACTRAN.factorize(big(typemax(Int)) + 1)
             @test_throws _to_str(Markdown.parse(
                 "`n` must be `≤ typemax(Int)` (on your machine, \
                 `$(typemax(Int))`)."
-            )) factorize(big(typemax(Int)) + 1)
+            )) FRACTRAN.factorize(big(typemax(Int)) + 1)
         end
     end
 
@@ -419,14 +438,17 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
         # with explicit exponent-of-one printing.
         @testset "$i, compact, implicit `¹`" for i in 1:100
             @test ==(
-                prettify_factorization(factorize(i)),
+                FRACTRAN.prettify_factorization(FRACTRAN.factorize(i)),
                 replace(first(PRETTIFIED_FACTORIZATIONS[i]), '¹' => ""),
             )
         end
 
         @testset "$i, compact, explicit `¹`" for i in 1:100
             @test ==(
-                prettify_factorization(factorize(i), explicit_one=true),
+                FRACTRAN.prettify_factorization(
+                    FRACTRAN.factorize(i),
+                    explicit_one=true,
+                ),
                 first(PRETTIFIED_FACTORIZATIONS[i]),
             )
         end
@@ -438,15 +460,18 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
         # no exponent should be printed.
         @testset "$i, verbose, implicit `¹`" for i in 1:100
             @test ==(
-                prettify_factorization(factorize(i), verbose=true),
+                FRACTRAN.prettify_factorization(
+                    FRACTRAN.factorize(i),
+                    verbose=true,
+                ),
                 last(PRETTIFIED_FACTORIZATIONS[i]),
             )
         end
 
         @testset "$i, verbose, explicit `¹`" for i in 1:100
             @test ==(
-                prettify_factorization(
-                    factorize(i),
+                FRACTRAN.prettify_factorization(
+                    FRACTRAN.factorize(i),
                     explicit_one=true,
                     verbose=true,
                 ),
@@ -462,13 +487,19 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
                 "2¹⁰", "2¹¹", "2¹²", "2¹³", "2¹⁴", "2¹⁵", "2¹⁶", "2¹⁷", "2¹⁸",
                 "2¹⁹", "2²⁰",
             ]
-            @test prettify_factorization(factorize(2^i)) == results[i]
+            @test ==(
+                FRACTRAN.prettify_factorization(FRACTRAN.factorize(2^i)),
+                results[i],
+            )
         end
 
         # Test a highly composite number with many prime factors.
         @testset "Highly composite number" begin
             n = 2^5 * 3^2 * 5 * 7 * 11 * 13  # 1,441,440
-            @test prettify_factorization(factorize(n)) == "2⁵⋅3²⋅5⋅7⋅11⋅13"
+            @test ==(
+                FRACTRAN.prettify_factorization(FRACTRAN.factorize(n)),
+                "2⁵⋅3²⋅5⋅7⋅11⋅13",
+            )
         end
     end
 

@@ -52,13 +52,13 @@ FRACTRAN
 
 ## Prime factorization
 
-To simplify the underlying computations, FRACTRAN.jl implements FRACTRAN using prime factorization by [`factorize`](@ref) (non-cache-mutating) and [`factorize!`](@ref) (cache-mutating).  Thereby, [`generate_primes`](@ref) generates the needed list of prime numbers.  Additionally, [`prettify_factorization`](@ref) can create a prettified string representation of a factorization for prettyprinting.  All functions are `export`ed for external usage by you.
+To simplify the underlying computations, FRACTRAN.jl implements FRACTRAN using prime factorization by [`FRACTRAN.factorize`](@ref) (non-cache-mutating) and [`FRACTRAN.factorize!`](@ref) (cache-mutating).  Thereby, [`FRACTRAN.generate_primes`](@ref) generates the needed list of prime numbers.  Additionally, [`FRACTRAN.prettify_factorization`](@ref) can create a prettified string representation of a factorization for prettyprinting.  All functions are `public` for external usage by you.
 
 ```@docs
-generate_primes
-factorize
-factorize!
-prettify_factorization
+FRACTRAN.generate_primes
+FRACTRAN.factorize
+FRACTRAN.factorize!
+FRACTRAN.prettify_factorization
 ```
 
 ## FRACTRAN algorithm

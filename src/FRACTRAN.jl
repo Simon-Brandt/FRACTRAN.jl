@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-21
+# Last Modification: 2026-09-22
 
 """
 Julia implementation of the esoteric programming language FRACTRAN.
@@ -76,23 +76,25 @@ You may also want to have a look at the
 to see how to programmatically use FRACTRAN in Julia.
 
 Finally, as FRACTRAN is prime number–based, FRACTRAN.jl also includes a
-function for prime factorization, [`factorize`](@ref), which uses
-[`generate_primes`](@ref) to generate a list of prime numbers.
+function for prime factorization, [`FRACTRAN.factorize`](@ref), which
+uses [`FRACTRAN.generate_primes`](@ref) to generate a list of prime
+numbers.
 
 !!! note
-    Though you can use [`generate_primes`](@ref) and [`factorize`](@ref)
-    for other purposes, the implementation is (intentionally) not
-    optimized for performance.
+    Though you can use [`FRACTRAN.generate_primes`](@ref) and
+    [`FRACTRAN.factorize`](@ref) for other purposes, the implementation is
+    (intentionally) not optimized for performance.
 
 !!! tip
     You may visualize the factorization with
-    [`prettify_factorization`](@ref).
+    [`FRACTRAN.prettify_factorization`](@ref).
 
-To accelerate repeated [`fractran`](@ref) calls, [`factorize`](@ref),
-[`fractran`](@ref), and all example programs have a second form with
-exclamation mark (like [`factorize!`](@ref), [`fractran!`](@ref) *etc.*)
-that take cache arguments for in-place mutation.  FRACTRAN.jl provides
-two module-level caches for this, [`FRACTRAN.factorizations`](@ref) and
+To accelerate repeated [`fractran`](@ref) calls,
+[`FRACTRAN.factorize`](@ref), [`fractran`](@ref), and all example
+programs have a second form with exclamation mark (like
+[`FRACTRAN.factorize!`](@ref), [`fractran!`](@ref) *etc.*) that take
+cache arguments for in-place mutation.  FRACTRAN.jl provides two
+module-level caches for this, [`FRACTRAN.factorizations`](@ref) and
 [`FRACTRAN.primes`](@ref), which you can use alongside your own objects.
 
 ## Examples
@@ -100,14 +102,14 @@ two module-level caches for this, [`FRACTRAN.factorizations`](@ref) and
 ### Manual addition program
 
 ```jldoctest
-julia> n = 432;                # Start number: 2^4 * 3^3 (operands 4 and 3).
+julia> n = 432;                 # Start number: 2^4 * 3^3 (operands 4 and 3).
 
-julia> fractions = (3//2,);    # FRACTRAN program for addition.
+julia> fractions = (3//2,);     # FRACTRAN program for addition.
 
-julia> fractran(n, fractions)  # FRACTRAN invocation.
+julia> fractran(n, fractions)   # FRACTRAN invocation.
 2187
 
-julia> factorize(ans)          # Get exponents, result is in register `3`.
+julia> FRACTRAN.factorize(ans)  # Get exponents, result is in register `3`.
 DataStructures.Accumulator{Int64, Int64} with 1 entry:
   3 => 7
 ```
@@ -137,28 +139,28 @@ julia> FRACTRAN.primegame(300)  # Number of FRACTRAN iterations.
 ### Prime number generation and factorization
 
 ```jldoctest
-julia> generate_primes(2, 10)
+julia> FRACTRAN.generate_primes(2, 10)
 4-element Vector{Int64}:
  2
  3
  5
  7
 
-julia> factorize(120)
+julia> FRACTRAN.factorize(120)
 DataStructures.Accumulator{Int64, Int64} with 3 entries:
   3 => 1
   2 => 3
   5 => 1
 
-julia> prettify_factorization(ans)
+julia> FRACTRAN.prettify_factorization(ans)
 "2³⋅3⋅5"
 ```
 """
 module FRACTRAN
 
-export factorize, factorize!, fractran, fractran!
-export generate_primes, prettify_factorization
+export fractran, fractran!
 
+public generate_primes, factorize, factorize!, prettify_factorization
 public add, add!, sub, sub!, mul, mul!, divrem, divrem!, primegame, primegame!
 public factorizations, primes
 
@@ -230,13 +232,13 @@ function _add_docstring_extended_help_caches()::String
 
     These are:
 
-    - [`factorize!`](@ref)
+    - [`FRACTRAN.factorize!`](@ref)
     - [`fractran!`](@ref)
-    - [`add!`](@ref)
-    - [`sub!`](@ref)
-    - [`mul!`](@ref)
-    - [`divrem!`](@ref)
-    - [`primegame!`](@ref)
+    - [`FRACTRAN.add!`](@ref)
+    - [`FRACTRAN.sub!`](@ref)
+    - [`FRACTRAN.mul!`](@ref)
+    - [`FRACTRAN.divrem!`](@ref)
+    - [`FRACTRAN.primegame!`](@ref)
     """
     return note
 end
@@ -310,7 +312,7 @@ The second form defaults to `min_n = 2`.
 # Examples
 
 ```jldoctest
-julia> generate_primes(2, 20)
+julia> FRACTRAN.generate_primes(2, 20)
 8-element Vector{Int64}:
   2
   3
@@ -321,14 +323,14 @@ julia> generate_primes(2, 20)
  17
  19
 
-julia> generate_primes(10)     # Usage of default value 2 for `min_n`.
+julia> FRACTRAN.generate_primes(10)     # Usage of default value 2 for `min_n`.
 4-element Vector{Int64}:
  2
  3
  5
  7
 
-julia> generate_primes(-5, 1)  # There's no prime number below 2.
+julia> FRACTRAN.generate_primes(-5, 1)  # There's no prime number below 2.
 ERROR: ArgumentError:  min_n must be ≥ 2.
 [...]
 ```
@@ -397,17 +399,17 @@ $(_add_docstring_thread_safety_warning())
 # Examples
 
 ```jldoctest
-julia> factorize(120)  # Composite number.
+julia> FRACTRAN.factorize(120)  # Composite number.
 DataStructures.Accumulator{Int64, Int64} with 3 entries:
   3 => 1
   2 => 3
   5 => 1
 
-julia> factorize(7)    # Prime number.
+julia> FRACTRAN.factorize(7)    # Prime number.
 DataStructures.Accumulator{Int64, Int64} with 1 entry:
   7 => 1
 
-julia> factorize(1)    # Empty product.
+julia> FRACTRAN.factorize(1)    # Empty product.
 Accumulator{Int64,Int64}()
 ```
 
@@ -418,7 +420,7 @@ factorize, factorize!
 function factorize(n::Integer)::Accumulator{Int, Int}
     factorizations = Dict{Int, Accumulator{Int, Int}}()
     primes = Int[]
-    return factorize!(factorizations, primes, n)
+    return FRACTRAN.factorize!(factorizations, primes, n)
 end
 
 function factorize!(
@@ -490,22 +492,22 @@ no effect.
 # Examples
 
 ```jldoctest
-julia> factors = factorize(120)
+julia> factors = FRACTRAN.factorize(120)
 DataStructures.Accumulator{Int64, Int64} with 3 entries:
   3 => 1
   2 => 3
   5 => 1
 
-julia> prettify_factorization(factors)
+julia> FRACTRAN.prettify_factorization(factors)
 "2³⋅3⋅5"
 
-julia> prettify_factorization(factorize(120))  # Same as above.
+julia> FRACTRAN.prettify_factorization(FRACTRAN.factorize(120))  # Same as above.
 "2³⋅3⋅5"
 
-julia> prettify_factorization(factorize(120), explicit_one=true)
+julia> FRACTRAN.prettify_factorization(FRACTRAN.factorize(120), explicit_one=true)
 "2³⋅3¹⋅5¹"
 
-julia> prettify_factorization(factorize(120), verbose=true)
+julia> FRACTRAN.prettify_factorization(FRACTRAN.factorize(120), verbose=true)
 "2⋅2⋅2⋅3⋅5"
 ```
 """
@@ -602,14 +604,14 @@ $(_add_docstring_thread_safety_warning())
 ## Simple addition program
 
 ```jldoctest
-julia> n = 432;                # Start number: 2^4 * 3^3 (operands 4 and 3).
+julia> n = 432;                 # Start number: 2^4 * 3^3 (operands 4 and 3).
 
-julia> fractions = (3//2,);    # FRACTRAN program for addition.
+julia> fractions = (3//2,);     # FRACTRAN program for addition.
 
-julia> fractran(n, fractions)  # FRACTRAN invocation.
+julia> fractran(n, fractions)   # FRACTRAN invocation.
 2187
 
-julia> factorize(ans)          # Get exponents, result is in register `3`.
+julia> FRACTRAN.factorize(ans)  # Get exponents, result is in register `3`.
 DataStructures.Accumulator{Int64, Int64} with 1 entry:
   3 => 7
 ```
@@ -623,14 +625,14 @@ julia> factorizations = Dict{Int, DataStructures.Accumulator{Int, Int}}();
 
 julia> primes = Int[];
 
-julia> n = 432;                # Start number: 2^4 * 3^3 (operands 4 and 3).
+julia> n = 432;                 # Start number: 2^4 * 3^3 (operands 4 and 3).
 
-julia> fractions = (1//6,);    # FRACTRAN program for subtraction.
+julia> fractions = (1//6,);     # FRACTRAN program for subtraction.
 
-julia> fractran(n, fractions)  # FRACTRAN invocation.
+julia> fractran(n, fractions)   # FRACTRAN invocation.
 2
 
-julia> factorize(ans)          # Get exponents, result is in register `2`.
+julia> FRACTRAN.factorize(ans)  # Get exponents, result is in register `2`.
 DataStructures.Accumulator{Int64, Int64} with 1 entry:
   2 => 1
 ```
@@ -723,11 +725,11 @@ function fractran!(
     # Factorize `n` and each `fraction` for more efficient operation on
     # the implicitly represented powers with a much lower risk of
     # integer overflow.
-    factors = factorize!(factorizations, primes, n)
+    factors = FRACTRAN.factorize!(factorizations, primes, n)
     fraction_powers = [
         (
-            factorize!(factorizations, primes, numerator(fraction)),
-            factorize!(factorizations, primes, denominator(fraction)),
+            FRACTRAN.factorize!(factorizations, primes, numerator(fraction)),
+            FRACTRAN.factorize!(factorizations, primes, denominator(fraction)),
         )
         for fraction in fractions
     ]
@@ -835,7 +837,7 @@ function add!(
     fractions = (3//2,)
     return (
         fractran!(factorizations, primes, n, fractions)
-        |> (x -> factorize!(factorizations, primes, x))
+        |> (x -> FRACTRAN.factorize!(factorizations, primes, x))
         |> values
         |> only
     )
@@ -900,7 +902,7 @@ function sub!(
     n = 2^a * 3^b
     fractions = (1//6,)
     result = fractran!(factorizations, primes, n, fractions)
-    factors = factorize!(factorizations, primes, result)
+    factors = FRACTRAN.factorize!(factorizations, primes, result)
 
     return if a == b
         0            # Empty product, as 2^(a-b) = 2^0 = 1 ⟹ factorize(1) = ∅.
@@ -971,7 +973,7 @@ function mul!(
     fractions = (455//33, 11//13, 1//11, 3//7, 11//2, 1//3)
     return (
         fractran!(factorizations, primes, n, fractions)
-        |> (x -> factorize!(factorizations, primes, x))
+        |> (x -> FRACTRAN.factorize!(factorizations, primes, x))
         |> values
         |> only
     )
@@ -1043,7 +1045,7 @@ function divrem!(
     n = 2^a * 3^b * 11
     fractions = (91//66, 11//13, 1//33, 85//11, 57//119, 17//19, 11//17, 1//3)
     result = fractran!(factorizations, primes, n, fractions)
-    factors = factorize!(factorizations, primes, result)
+    factors = FRACTRAN.factorize!(factorizations, primes, result)
 
     return if haskey(factors, 5) && haskey(factors, 7)
         (factors[5], factors[7])  # Incomplete division with `q` and `r`.
@@ -1149,7 +1151,7 @@ function primegame!(
     # Filter the output.
     found_primes = Int[]
     for result in results
-        factors = factorize!(factorizations, primes, result)
+        factors = FRACTRAN.factorize!(factorizations, primes, result)
         if (
             factors[2] >= 1
             && all(exponent == 0 for (base, exponent) in factors if base != 2)

@@ -50,32 +50,32 @@ In short, each natural number, excluding ``1``, is either a prime number or a co
 
 The most trivial method to find the factorization of a number ``n``, and actually the one implemented in FRACTRAN.jl, is to divide ``n`` by a list of prime numbers, up to ``⌈\sqrt n⌉``, and store each prime number by which ``n`` is divisible, and how often.
 
-To this end, FRACTRAN.jl needs to know the prime numbers.  Thus, the module contains a function, [`generate_primes`](@ref), to create a list of prime numbers between a lower and an upper boundary.  To allow you to retrace FRACTRAN—or simply if you need the prime numbers for other tasks—the function is `export`ed as part of the public API.  It works by simple trial division—a number is prime if no number up to ``⌈\sqrt n⌉`` divides it without remainder.  For FRACTRAN's purposes, this is fast enough, so no specialized method of finding large prime numbers is needed.
+To this end, FRACTRAN.jl needs to know the prime numbers.  Thus, the module contains a function, [`FRACTRAN.generate_primes`](@ref), to create a list of prime numbers between a lower and an upper boundary.  To allow you to retrace FRACTRAN—or simply if you need the prime numbers for other tasks—the function is part of the `public` API.  It works by simple trial division—a number is prime if no number up to ``⌈\sqrt n⌉`` divides it without remainder.  For FRACTRAN's purposes, this is fast enough, so no specialized method of finding large prime numbers is needed.
 
-Suppose now we'd like to know all prime numbers below ``100``.  Then, we just call [`generate_primes`](@ref) with this number as argument.  The function has two forms, one with and one without lower boundary.  In the latter case, the boundary is set to ``2``, the smallest prime number.
+Suppose now we'd like to know all prime numbers below ``100``.  Then, we just call [`FRACTRAN.generate_primes`](@ref) with this number as argument.  The function has two forms, one with and one without lower boundary.  In the latter case, the boundary is set to ``2``, the smallest prime number.
 
 ```@repl
 using FRACTRAN
 
-generate_primes(100)
+FRACTRAN.generate_primes(100)
 ```
 
 Now, we can count how many prime numbers there are between ``1000`` and ``2000``:
 
 ```@repl primes
-generate_primes(2000) .|> ≥(1000) |> count
+FRACTRAN.generate_primes(2000) .|> ≥(1000) |> count
 ```
 
 Or, equivalently:
 
 ```@repl primes
-generate_primes(2000) |> filter(≥(1000)) |> length
+FRACTRAN.generate_primes(2000) |> filter(≥(1000)) |> length
 ```
 
 Likewise, we can find the largest prime number below ``10^6``:
 
 ```@repl primes
-generate_primes(1_000_000) |> last
+FRACTRAN.generate_primes(1_000_000) |> last
 ```
 
 Thereby, we take advantage of the generated list being sorted.
@@ -89,28 +89,28 @@ Thereby, we take advantage of the generated list being sorted.
 using FRACTRAN
 ```
 
-More relevant for FRACTRAN than bare prime numbers is the actual prime factorization, which is implemented in [`factorize`](@ref).  This function takes a number ``n`` and returns its factorization as `DataStructures.Accumulator` object.  The `Accumulator` maps the prime factors to their counts:
+More relevant for FRACTRAN than bare prime numbers is the actual prime factorization, which is implemented in [`FRACTRAN.factorize`](@ref).  This function takes a number ``n`` and returns its factorization as `DataStructures.Accumulator` object.  The `Accumulator` maps the prime factors to their counts:
 
 ```@repl factorization
-factorize(60)
+FRACTRAN.factorize(60)
 ```
 
-While this data structure is very handy for the FRACTRAN algorithm, it is not really legible.  Thus, if you want to visualize a factorization, you can use FRACTRAN.jl's [`prettify_factorization`](@ref) function, passing the `Accumulator` as argument:
+While this data structure is very handy for the FRACTRAN algorithm, it is not really legible.  Thus, if you want to visualize a factorization, you can use FRACTRAN.jl's [`FRACTRAN.prettify_factorization`](@ref) function, passing the `Accumulator` as argument:
 
 ```@repl factorization
-factorize(60) |> prettify_factorization
+FRACTRAN.factorize(60) |> FRACTRAN.prettify_factorization
 ```
 
-[`prettify_factorization`](@ref) takes two optional Boolean keyword arguments, `explicit_one` and `verbose`.  The former prints the exponent of ``1`` explicitly, the latter expands the condensed exponent style by listing all prime factors individually:
+[`FRACTRAN.prettify_factorization`](@ref) takes two optional Boolean keyword arguments, `explicit_one` and `verbose`.  The former prints the exponent of ``1`` explicitly, the latter expands the condensed exponent style by listing all prime factors individually:
 
 ```@repl factorization
-factors = factorize(60);
-prettify_factorization(factors)
-prettify_factorization(factors, explicit_one=true)
-prettify_factorization(factors, verbose=true)
+factors = FRACTRAN.factorize(60);
+FRACTRAN.prettify_factorization(factors)
+FRACTRAN.prettify_factorization(factors, explicit_one=true)
+FRACTRAN.prettify_factorization(factors, verbose=true)
 ```
 
-Internally, FRACTRAN.jl needs to factorize quite a few numbers.  Thus, for many functions, the module contains variants which take cache variables as arguments, such that they can return previously computed results immediately.  These functions have the same name as their non-mutating versions, but end in an exclamation mark, the typical sign for mutating functions.  If you need to compute many factorizations, you can leverage the cache for a sizeable speedup: All you need to do is create the cache variables and pass them as additional arguments to [`factorize!`](@ref):
+Internally, FRACTRAN.jl needs to factorize quite a few numbers.  Thus, for many functions, the module contains variants which take cache variables as arguments, such that they can return previously computed results immediately.  These functions have the same name as their non-mutating versions, but end in an exclamation mark, the typical sign for mutating functions.  If you need to compute many factorizations, you can leverage the cache for a sizeable speedup: All you need to do is create the cache variables and pass them as additional arguments to [`FRACTRAN.factorize!`](@ref):
 
 ```@repl factorization
 using DataStructures: Accumulator
@@ -118,7 +118,7 @@ using DataStructures: Accumulator
 factorizations = Dict{Int, Accumulator{Int, Int}}()
 primes = Int[]
 
-factorize!(factorizations, primes, 60)
+FRACTRAN.factorize!(factorizations, primes, 60)
 ```
 
 The result is the same, but when we inspect the cache variables, we can see that they were populated with the needed intermediate results:
@@ -134,9 +134,9 @@ Let's investigate the performance gain by employing the caches:
 
 ```@repl factorization
 n = 2 * 3 * 5 * 7 * 11 * 13 * 17 * 19  # Large number.
-@time factorize(n);  # No cache.
-@time factorize!(FRACTRAN.factorizations, FRACTRAN.primes, n);  # Yet empty cache.
-@time factorize!(FRACTRAN.factorizations, FRACTRAN.primes, n);  # Now populated cache.
+@time FRACTRAN.factorize(n);  # No cache.
+@time FRACTRAN.factorize!(FRACTRAN.factorizations, FRACTRAN.primes, n);  # Yet empty cache.
+@time FRACTRAN.factorize!(FRACTRAN.factorizations, FRACTRAN.primes, n);  # Now populated cache.
 ```
 
 Granted, though the factorization runs a lot faster, on this order of magnitude of total runtime, we don't need to care about performance.  Later in this tutorial, however, we'll see how stored prime numbers can offer a lot of runtime gain.
@@ -162,7 +162,7 @@ result = fractran(n, fractions)
 How do we interpret the result?  The program ``\frac{2}{3}`` *increments* the register `2`'s value and *decrements* the register `3`'s value on every multiplication step (multiplication by ``2`` and division by ``3``).  Running on ``648`` yields ``128``.  Factorizing the result sheds some light on what happened:
 
 ```@repl fractran
-factorize(result) |> prettify_factorization
+FRACTRAN.factorize(result) |> FRACTRAN.prettify_factorization
 ```
 
 ``128`` is ``2⁷``.  In other words, we started with ``2³⋅3⁴`` and obtained ``2⁷``.  It is simple to conclude that the program ``\frac{2}{3}`` works as an adder by writing the sum of the exponents in register `2` and register `3` to register `2`.
@@ -285,14 +285,14 @@ add(4, 3)
 
 This is already the correct result!  It's just not very user-friendly—we passed ``4`` and ``3`` and got ``2187`` as result, clearly not what a user likely expected of an addition program.
 
-Thus, we can [`factorize`](@ref) the result to decompose it into the individual registers:
+Thus, we can [`FRACTRAN.factorize`](@ref) the result to decompose it into the individual registers:
 
 ```@repl example
 function add(a, b)
     n = 2^a * 3^b
     fractions = (3//2,)
     result = fractran(n, fractions)
-    factorize(result)
+    FRACTRAN.factorize(result)
 end
 
 add(4, 3)
@@ -305,7 +305,7 @@ function add(a, b)
     n = 2^a * 3^b
     fractions = (3//2,)
     result = fractran(n, fractions)
-    factors = factorize(result)
+    factors = FRACTRAN.factorize(result)
     only(values(factors))
 end
 
@@ -320,7 +320,7 @@ function add(a::Integer, b::Integer)::Int
     fractions = (3//2,)
     return (
         fractran(n, fractions)
-        |> factorize
+        |> FRACTRAN.factorize
         |> values
         |> only
     )
@@ -352,7 +352,7 @@ function add!(
     fractions = (3//2,)
     return (
         fractran!(factorizations, primes, n, fractions)
-        |> (x -> factorize!(factorizations, primes, x))
+        |> (x -> FRACTRAN.factorize!(factorizations, primes, x))
         |> values
         |> only
     )
@@ -383,7 +383,7 @@ As an exercise, you may now try to implement [`FRACTRAN.sub`](@ref)!  After you'
         n = 2^a * 3^b
         fractions = (1//6,)
         result = fractran!(factorizations, primes, n, fractions)
-        factors = factorize!(factorizations, primes, result)
+        factors = FRACTRAN.factorize!(factorizations, primes, result)
 
         return if a == b
             0            # Empty product, as 2^(a-b) = 2^0 = 1 ⟹ factorize(1) = ∅.
