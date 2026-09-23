@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-22
+# Last Modification: 2026-09-23
 
 using Markdown: Markdown, @md_str
 using Test: @test, @testset, @test_throws
@@ -28,6 +28,7 @@ using Test: @test, @testset, @test_throws
 using Aqua: Aqua
 using DataStructures: Accumulator
 using Documenter: Documenter
+using ExplicitImports: ExplicitImports
 using JET: JET
 
 using FRACTRAN
@@ -296,6 +297,10 @@ _to_str(msg::Markdown.MD)::String = sprint(show, MIME"text/plain"(), msg)
     @testset "Code linting (JET.jl)" begin
         JET.test_package(FRACTRAN, target_modules=(FRACTRAN,))
     end
+
+    # Check that there are no implicit, private, or stale imports or
+    # self-qualified accesses.
+    ExplicitImports.test_explicit_imports(FRACTRAN)
 
     # Test the prime number generation algorithm.
     @testset "Prime number generation" begin
