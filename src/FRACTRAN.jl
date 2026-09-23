@@ -20,7 +20,7 @@
 
 # Author: Simon Brandt
 # E-Mail: simon.brandt@uni-greifswald.de
-# Last Modification: 2026-09-22
+# Last Modification: 2026-09-23
 
 """
 Julia implementation of the esoteric programming language FRACTRAN.
@@ -420,7 +420,7 @@ factorize, factorize!
 function factorize(n::Integer)::Accumulator{Int, Int}
     factorizations = Dict{Int, Accumulator{Int, Int}}()
     primes = Int[]
-    return FRACTRAN.factorize!(factorizations, primes, n)
+    return factorize!(factorizations, primes, n)
 end
 
 function factorize!(
@@ -725,11 +725,11 @@ function fractran!(
     # Factorize `n` and each `fraction` for more efficient operation on
     # the implicitly represented powers with a much lower risk of
     # integer overflow.
-    factors = FRACTRAN.factorize!(factorizations, primes, n)
+    factors = factorize!(factorizations, primes, n)
     fraction_powers = [
         (
-            FRACTRAN.factorize!(factorizations, primes, numerator(fraction)),
-            FRACTRAN.factorize!(factorizations, primes, denominator(fraction)),
+            factorize!(factorizations, primes, numerator(fraction)),
+            factorize!(factorizations, primes, denominator(fraction)),
         )
         for fraction in fractions
     ]
@@ -837,7 +837,7 @@ function add!(
     fractions = (3//2,)
     return (
         fractran!(factorizations, primes, n, fractions)
-        |> (x -> FRACTRAN.factorize!(factorizations, primes, x))
+        |> (x -> factorize!(factorizations, primes, x))
         |> values
         |> only
     )
@@ -902,7 +902,7 @@ function sub!(
     n = 2^a * 3^b
     fractions = (1//6,)
     result = fractran!(factorizations, primes, n, fractions)
-    factors = FRACTRAN.factorize!(factorizations, primes, result)
+    factors = factorize!(factorizations, primes, result)
 
     return if a == b
         0            # Empty product, as 2^(a-b) = 2^0 = 1 ⟹ factorize(1) = ∅.
@@ -973,7 +973,7 @@ function mul!(
     fractions = (455//33, 11//13, 1//11, 3//7, 11//2, 1//3)
     return (
         fractran!(factorizations, primes, n, fractions)
-        |> (x -> FRACTRAN.factorize!(factorizations, primes, x))
+        |> (x -> factorize!(factorizations, primes, x))
         |> values
         |> only
     )
@@ -1045,7 +1045,7 @@ function divrem!(
     n = 2^a * 3^b * 11
     fractions = (91//66, 11//13, 1//33, 85//11, 57//119, 17//19, 11//17, 1//3)
     result = fractran!(factorizations, primes, n, fractions)
-    factors = FRACTRAN.factorize!(factorizations, primes, result)
+    factors = factorize!(factorizations, primes, result)
 
     return if haskey(factors, 5) && haskey(factors, 7)
         (factors[5], factors[7])  # Incomplete division with `q` and `r`.
@@ -1151,7 +1151,7 @@ function primegame!(
     # Filter the output.
     found_primes = Int[]
     for result in results
-        factors = FRACTRAN.factorize!(factorizations, primes, result)
+        factors = factorize!(factorizations, primes, result)
         if (
             factors[2] >= 1
             && all(exponent == 0 for (base, exponent) in factors if base != 2)
