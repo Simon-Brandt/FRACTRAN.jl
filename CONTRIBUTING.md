@@ -20,7 +20,7 @@
 
 # Contribution guide
 
-You're very welcome to contribute to FRACTRAN.jl!  Be it by fixing spelling mistakes or small bugs, adding or clarifying the [documentation](docs), or even adding new functionality to FRACTRAN.jl itself, any improvement is highly appreciated.
+You're very welcome to contribute to FRACTRAN.jl!  Be it by fixing spelling mistakes or small bugs, adding to or clarifying the [documentation](docs), or even adding new functionality to FRACTRAN.jl itself, any improvement is highly appreciated.
 
 In order to facilitate the seamless integration of your commits with the FRACTRAN.jl codebase, please try to comply with the following guidelines.  Most of them are rather irrelevant for small fixes, so you probably would follow them, anyways.  If you have reasons *not* to comply, it would likely not mean that your commit can't be merged, but you should explain *why* the guideline does not apply.  After all, it's a *guideline*, not a *law*.  And its always possible to adjust things at a later stage.
 
@@ -49,9 +49,22 @@ Keep the commit messages brief.  Rather explain the reasons in the issue or pull
 
 ### 1.3. Artificial intelligence tools
 
-Some people just love their LLMs and have unlearned how to write themselves.  If you're part of them, you can still contribute to FRACTRAN.jl, but please review *anything* AI-generated *even more carefully* than when you had written it yourself.  In other words, there is no ban on AI-generated content (AIGC), as long as you take *full responsibility* on the committed output, and *disclose* your usage of AI tools.
+> [!IMPORTANT]
+> These guidelines are *compulsory* for *all* contributions involving AI tools, chiefly LLMs.
 
-Should, at some point, the legislation be refined to prohibit AIGC in some countries, or set rules on the license AIGC can be release under, and should this then violate the FRACTRAN.jl license (the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)), it would be on *you* to rectify the legal problems.  So, to save us all from legal trouble: Rather perform the changes *yourself*.
+Some people just love their LLMs and have unlearned how to write themselves.  If you're part of them, you can still contribute to FRACTRAN.jl, but please review *anything* AI-generated *even more carefully* than when you had written it yourself.  In other words, there is *no ban* on AI-generated content (AIGC), as long as you take *full responsibility* on the committed output, and *disclose* your usage of AI tools in the pull request.  Vibe-coding is prohibited—please keep the code in your fork, then.
+
+Furthermore, do *not* list LLMs as commit authors or co-authors.  This is as pointless as listing your text editor or its snippets as authors—LLMs cannot be held responsible for their "contributions", they're just programs—albeit very powerful ones.
+
+Should, at some point, the legislation be refined to prohibit AIGC in some countries, or set rules on the license AIGC can be release under, and should this then violate the FRACTRAN.jl license (the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)), it would, in theory, be on *you* to rectify the legal problems.  So, to save us all from legal trouble: Rather perform the changes *yourself*.
+
+Additionally, please *don't* paste LLM output (vetted or not) into commit messages or issue or pull request texts.  Instead, please write them yourself.  You are free to use spellcheckers, translators, and the like to fix single words, but please avoid tools that rewrite entire paragraphs.  LLMs tend to extreme verbosity (and flattery!), and that makes it very hard to grasp what "you" actually want.
+
+Most importantly: *Never* copy a message (like a comment from a contributor asking for clarification) into an LLM and paste its output verbatim as answer.  Rather use it to understand the issue better, and then answer *in your own words*.
+
+Spelling mistakes and grammar errors are just fine—I do them all the time.  They're fixable in the process of reviewing your PRs (or even years later).  Mountains of LLM output however, especially of dubious quality, are not.
+
+So, in short: Feel free to use LLMs as assistants for coding and understanding problems.  But please *don't* use them in communicating with me or other contributors.
 
 ## 2. Code
 
